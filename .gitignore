@@ -1,0 +1,20 @@
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+
+# Secrets — never commit
+.env
+.env.local
+.env*.local
+
+# Never commit anything that could contain case data
+/uploads/
+/tmp/
+*.case.json
+*.pack.pdf
+
+*.tsbuildinfo
+next-env.d.ts
+coverage/

@@ -1,0 +1,310 @@
+/*
+ * Virasat visual language.
+ *
+ * The people using this have had a death in the family in the last few weeks.
+ * The design brief is calm, unhurried and legible — not cheerful, not
+ * clinical, and with nothing that reads as a growth-optimised funnel.
+ * Generous line height, real reading serif, muted warm neutrals.
+ */
+
+:root {
+  --ground: #faf8f5;
+  --surface: #ffffff;
+  --surface-2: #f2efe9;
+  --ink: #1c1a17;
+  --ink-mid: #4f4b44;
+  --ink-soft: #7d7869;
+  --rule: #e2ddd3;
+  --accent: #6b4423;
+  --accent-soft: #8f6640;
+  --danger: #8c3327;
+  --ok: #2c6142;
+  --radius: 4px;
+  --measure: 34rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #16150f;
+    --surface: #1f1d17;
+    --surface-2: #29261e;
+    --ink: #ece8df;
+    --ink-mid: #b6b0a2;
+    --ink-soft: #8a8474;
+    --rule: #37332a;
+    --accent: #d3a06a;
+    --accent-soft: #a87e50;
+    --danger: #e0897c;
+    --ok: #7dbf9a;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--ground);
+  color: var(--ink);
+}
+
+body {
+  font-family: Georgia, 'Iowan Old Style', 'Source Serif 4', serif;
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, .ui {
+  font-family: 'Helvetica Neue', Arial, system-ui, sans-serif;
+}
+
+h1 { font-size: 2rem; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.5rem; text-wrap: balance; }
+h2 { font-size: 1.3rem; line-height: 1.25; letter-spacing: -0.01em; margin: 0 0 0.5rem; text-wrap: balance; }
+p { margin: 0 0 1rem; max-width: var(--measure); }
+
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.shell { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+
+.masthead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--rule);
+}
+.wordmark { font-family: Georgia, serif; font-size: 1.25rem; letter-spacing: 0.02em; }
+.tagline { font-size: 0.8rem; color: var(--ink-soft); font-family: 'Helvetica Neue', Arial, sans-serif; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.1rem; }
+.field label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.9rem; font-weight: 500; }
+.field .hint { font-size: 0.85rem; color: var(--ink-soft); }
+.field .error { font-size: 0.85rem; color: var(--danger); }
+
+input[type='text'], input[type='date'], input[type='email'], select {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
+}
+
+.choice { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.choice label {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--surface);
+  cursor: pointer;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.9rem;
+}
+.choice label:has(input:checked) { border-color: var(--accent); background: var(--surface-2); }
+.choice input { accent-color: var(--accent); }
+
+button.primary {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1rem;
+  padding: 0.7rem 1.4rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--ground);
+  cursor: pointer;
+}
+button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+button.quiet {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: none; border: 1px solid var(--rule); color: var(--ink-mid);
+  padding: 0.6rem 1.1rem; border-radius: var(--radius); cursor: pointer;
+}
+
+.notice {
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  padding: 1rem 1.2rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.95rem;
+  margin-bottom: 1.25rem;
+}
+.notice.warn { border-left-color: var(--danger); }
+
+.steps { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; list-style: none; padding: 0; }
+.steps li {
+  flex: 1; height: 3px; background: var(--rule); border-radius: 2px;
+}
+.steps li[data-done='true'] { background: var(--accent); }
+
+.disclaimer {
+  margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
+  font-size: 0.82rem; color: var(--ink-soft); line-height: 1.6;
+}
+
+/* =========================================================================
+   Landing page. Ported from the prototype so the two stay in step.
+   ========================================================================= */
+  /* ---- landing ---- */
+  .hero{padding:.5rem 0 2.2rem;}
+  .hero h1{
+    font-size:clamp(1.75rem,4.6vw,2.7rem);line-height:1.1;letter-spacing:-.028em;
+    font-weight:600;max-width:19ch;margin:0 0 1.1rem;
+  }
+  .hero h1 em{font-style:normal;color:var(--accent);}
+  .hero .sub{font-size:clamp(1rem,2.1vw,1.15rem);color:var(--ink-mid);max-width:54ch;margin:0 0 1.6rem;}
+  .cta-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+  .btn-lg{padding:.8rem 1.6rem;font-size:1rem;border:none;background:var(--accent);font-weight:500;}
+  .cta-note{font-size:.85rem;color:var(--ink-soft);}
+
+  .sect{padding-top:2.4rem;margin-top:2.4rem;border-top:1px solid var(--rule);}
+  .sect > h2{font-size:1.35rem;margin-bottom:.35rem;}
+  .sect > .sub{color:var(--ink-mid);max-width:58ch;margin-bottom:1.5rem;}
+
+  .trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(15.5rem,1fr));gap:1px;
+    background:var(--rule);border:1px solid var(--rule);border-radius:5px;overflow:hidden;}
+  .trust > div{background:var(--surface);padding:1.15rem 1.25rem;display:flex;flex-direction:column;gap:.45rem;}
+  .trust h3{font-size:.95rem;color:var(--ink);}
+  .trust p{font-size:.88rem;line-height:1.55;color:var(--ink-mid);margin:0;max-width:none;}
+
+  .flow{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;}
+  .flow li{display:grid;grid-template-columns:1.6rem 1fr;gap:0 .9rem;padding:.85rem 0;
+    border-bottom:1px solid var(--rule);}
+  .flow li:last-child{border-bottom:none;}
+  .flow .dot{
+    grid-row:1/span 2;width:1.6rem;height:1.6rem;border-radius:50%;
+    background:var(--surface-2);color:var(--accent);
+    font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;
+    display:flex;align-items:center;justify-content:center;margin-top:.15rem;
+  }
+  .flow .ft{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
+  .flow h3{font-size:.98rem;}
+  .flow .when{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-soft);}
+  .flow .when[data-slow="yes"]{color:var(--danger);}
+  .flow p{font-size:.88rem;color:var(--ink-mid);margin:.25rem 0 0;max-width:58ch;}
+
+  .limits{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.55rem;}
+  .limits li{display:flex;gap:.6rem;font-size:.92rem;color:var(--ink-mid);}
+  .limits .x{color:var(--danger);font-weight:600;flex:0 0 auto;}
+
+  .plain-note{
+    background:var(--surface-2);border-radius:5px;padding:1.15rem 1.35rem;
+    font-size:.92rem;color:var(--ink-mid);
+  }
+  .plain-note strong{color:var(--ink);}
+
+
+/* The landing markup uses .btn/.btn-lg; the rest of the app uses .primary.
+   Alias them so one button style serves both rather than drifting apart. */
+h3 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.94rem; margin: 0; font-weight: 600; }
+
+button.btn {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  border: none; border-radius: var(--radius);
+  background: var(--accent); color: var(--ground);
+  padding: 0.7rem 1.4rem; font-size: 1rem; cursor: pointer;
+}
+button.btn.btn-lg { padding: 0.8rem 1.6rem; }
+
+/* =========================================================================
+   Site chrome, FAQ and guides.
+   ========================================================================= */
+
+.skip {
+  position: absolute; left: -9999px;
+  background: var(--accent); color: var(--ground);
+  padding: 0.6rem 1rem; border-radius: 0 0 var(--radius) 0; z-index: 10;
+}
+.skip:focus { left: 0; top: 0; }
+
+.masthead { justify-content: space-between; }
+.wordmark-link { text-decoration: none; color: inherit; }
+.wordmark .dot { color: var(--accent); }
+
+.nav-links { display: flex; gap: 1.1rem; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.9rem; }
+.nav-links a { color: var(--ink-mid); text-decoration: none; }
+.nav-links a:hover { color: var(--accent); text-decoration: underline; }
+
+.crumbs {
+  font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.82rem;
+  color: var(--ink-soft); margin-bottom: 1rem;
+}
+.crumbs a { color: var(--ink-soft); }
+.crumbs span { margin: 0 0.35rem; }
+
+/* Native <details> rather than a JS accordion: works before hydration,
+   keyboard accessible for free, and find-in-page reaches collapsed answers. */
+.faq-list { display: flex; flex-direction: column; }
+.faq {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.15rem 0;
+}
+.faq:last-child { border-bottom: none; }
+.faq summary {
+  cursor: pointer; padding: 0.9rem 2rem 0.9rem 0; position: relative;
+  font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1rem;
+  font-weight: 500; line-height: 1.4; list-style: none;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after {
+  content: '+'; position: absolute; right: 0.35rem; top: 0.8rem;
+  color: var(--accent); font-size: 1.2rem; line-height: 1;
+}
+.faq[open] summary::after { content: '\2212'; }
+.faq summary:hover { color: var(--accent); }
+.faq p { padding: 0 0 1rem; margin: 0; color: var(--ink-mid); max-width: 62ch; }
+
+.guide-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.guide-card {
+  display: block; text-decoration: none; color: inherit;
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: var(--radius); padding: 1.15rem 1.3rem;
+}
+.guide-card:hover { border-color: var(--accent); }
+.guide-card h2 { font-size: 1.05rem; margin: 0 0 0.35rem; }
+.guide-card p { font-size: 0.9rem; color: var(--ink-mid); margin: 0 0 0.4rem; }
+
+/* The answer, before any detail. */
+.answer-first {
+  border-left: 3px solid var(--accent); background: var(--surface-2);
+  padding: 1.1rem 1.3rem; border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 1.25rem 0 1.75rem;
+}
+.answer-first p { margin: 0; font-size: 1.03rem; }
+
+textarea {
+  font: inherit; font-size: 1rem; padding: 0.6rem 0.7rem;
+  border: 1px solid var(--rule); border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); width: 100%; resize: vertical;
+}
+
+.site-footer { margin-top: 4rem; padding-top: 1.75rem; border-top: 1px solid var(--rule); }
+.foot-cols {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.75rem; margin-bottom: 1.75rem;
+}
+.foot-cols h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 0.6rem; }
+.foot-cols p { font-size: 0.85rem; color: var(--ink-mid); margin: 0; }
+.foot-cols ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.foot-cols a { font-size: 0.85rem; color: var(--ink-mid); text-decoration: none; }
+.foot-cols a:hover { color: var(--accent); text-decoration: underline; }
+
+.error { color: var(--danger); font-size: 0.88rem; }
+.sub { color: var(--ink-mid); max-width: 60ch; }
