@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),
   title: {
     // Every page gets the brand appended without repeating it in each file.
-    default: 'Virasat — claim a family member\'s accounts, shares and insurance',
-    template: '%s · Virasat',
+    default: 'Mera Hissa — claim a family member\'s accounts, shares and insurance',
+    template: '%s · Mera Hissa',
   },
   description: SITE.description,
   applicationName: SITE.name,
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="shell">
           <header className="masthead">
             <Link href="/" className="wordmark-link">
-              <span className="wordmark">Virasat<span className="dot">.</span></span>
+              <span className="wordmark">Mera Hissa<span className="dot">.</span></span>
             </Link>
             <nav className="nav-links" aria-label="Main">
               <Link href="/guides">Guides</Link>
@@ -67,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <footer className="site-footer">
             <div className="foot-cols">
               <div>
-                <h3>Virasat</h3>
+                <h3>Mera Hissa</h3>
                 <p>
                   We prepare the paperwork for transferring a deceased family member&rsquo;s
                   bank accounts, shares, mutual funds, insurance and provident fund to their
@@ -95,7 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             <p className="disclaimer">
-              Virasat prepares documents and explains the steps involved in claiming assets
+              Mera Hissa prepares documents and explains the steps involved in claiming assets
               left by a family member. We are not a law firm and this is not legal advice.
               We do not represent anyone before a court or tribunal. Where a case needs a
               succession certificate, probate, or letters of administration, we refer you

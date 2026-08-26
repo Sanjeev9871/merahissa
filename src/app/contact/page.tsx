@@ -2,7 +2,7 @@ import { LeadForm } from '@/components/LeadForm';
 import { pageMeta, SITE, breadcrumbJsonLd, JsonLd } from '@/lib/seo';
 
 export const metadata = pageMeta({
-  title: 'Contact Virasat',
+  title: 'Contact Mera Hissa',
   description:
     'Ask a question about claiming a deceased family member\'s bank accounts, shares '
     + 'or insurance in India. We answer within one working day.',

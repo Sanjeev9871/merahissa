@@ -49,7 +49,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   const { data: signed, error } = await supabaseAdmin()
     .storage.from('case-documents')
     .createSignedUrl(pack.storage_path as string, SIGNED_URL_TTL_SECONDS, {
-      download: `virasat-pack-v${pack.version as number}.pdf`,
+      download: `merahissa-pack-v${pack.version as number}.pdf`,
     });
 
   if (error || !signed) {
