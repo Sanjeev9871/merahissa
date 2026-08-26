@@ -1,8 +1,8 @@
-# Virasat
+# Mera Hissa
 
 Estate claim paperwork for Indian families — guided intake to a filed-ready document pack.
 
-When someone dies in India, their bank accounts, shares, mutual funds, insurance and provident fund do not simply pass to the family. Each institution wants a different form, a different affidavit, and a different set of proofs. Most families discover this one rejection at a time. Virasat turns that into a single guided flow.
+When someone dies in India, their bank accounts, shares, mutual funds, insurance and provident fund do not simply pass to the family. Each institution wants a different form, a different affidavit, and a different set of proofs. Most families discover this one rejection at a time. Mera Hissa turns that into a single guided flow.
 
 **Status:** Weeks 1–3 complete, plus a trust-first landing page, an FAQ, six SEO guides and lead capture. **234 tests passing, no network required.** Intake, client-side OCR upload, Razorpay payments, PDF pack generation, the admin review queue, DPDP deletion and the retention purge are all built.
 

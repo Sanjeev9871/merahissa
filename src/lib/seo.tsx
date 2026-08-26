@@ -90,7 +90,7 @@ export function organizationJsonLd() {
     },
     // Stated plainly in the markup as well as on the page.
     disambiguatingDescription:
-      'Virasat prepares estate claim documents. It is not a law firm and does not '
+      'Mera Hissa prepares estate claim documents. It is not a law firm and does not '
       + 'provide legal advice or represent clients before courts or tribunals.',
   };
 }

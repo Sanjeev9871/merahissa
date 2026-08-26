@@ -122,7 +122,7 @@ export const FAQS: readonly Faq[] = [
   {
     id: 'cost',
     topic: 'money',
-    q: 'What does Virasat cost?',
+    q: 'What does Mera Hissa cost?',
     a: 'A fixed fee, quoted before you create an account: ₹4,999 for a single institution, ₹14,999 for up to eight holdings, and ₹24,999 for larger estates and IEPF share recovery. '
      + 'We never take a percentage of what you recover. If we look at your case and find we cannot help, you are refunded in full. '
      + 'Court fees, stamp paper, notary charges and any advocate\'s fee are separate and paid by you directly — we never handle those.',
@@ -155,7 +155,7 @@ export const FAQS: readonly Faq[] = [
     id: 'is-this-legal-advice',
     topic: 'trust',
     q: 'Are you lawyers?',
-    a: 'No. Virasat prepares documents and explains the process. We are not a law firm, nothing we give you is legal advice, and we do not represent anyone before a court or tribunal. '
+    a: 'No. Mera Hissa prepares documents and explains the process. We are not a law firm, nothing we give you is legal advice, and we do not represent anyone before a court or tribunal. '
      + 'That is a real limit, not a disclaimer we hide in a footer — where your case needs a lawyer, we say so and step back.',
   },
   {
@@ -163,7 +163,7 @@ export const FAQS: readonly Faq[] = [
     topic: 'trust',
     q: 'You use AI. What if it gets my inheritance share wrong?',
     a: 'It cannot, because AI does not calculate your shares. Those come from code that implements the statute directly, as exact fractions, with the section cited — and every result is checked to total exactly one before it can be used. '
-     + 'The AI only writes the covering prose, and a person at Virasat reads every pack before it reaches you. If our templates are out of date for your bank, the case is held rather than sent.',
+     + 'The AI only writes the covering prose, and a person at Mera Hissa reads every pack before it reaches you. If our templates are out of date for your bank, the case is held rather than sent.',
   },
 ] as const;
 

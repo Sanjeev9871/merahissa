@@ -43,14 +43,14 @@ export interface PackDocument {
  * own page at the front. `assertDisclaimerPresent` enforces that.
  */
 export const DISCLAIMER_FOOTER =
-  'Virasat prepares documents. This is not legal advice and we do not represent '
+  'Mera Hissa prepares documents. This is not legal advice and we do not represent '
   + 'you before any court or tribunal.';
 
 const DISCLAIMER_FULL = [
   // The phrases "not a law firm" and "not legal advice" are asserted verbatim
   // by assertDisclaimerPresent(). Reword the rest freely; do not reword these
   // two, or every pack will correctly refuse to release.
-  'Virasat has prepared the documents in this pack from the information you gave us. '
+  'Mera Hissa has prepared the documents in this pack from the information you gave us. '
   + 'We are not a law firm, this is not legal advice, and we do not represent you '
   + 'before any court, tribunal or authority.',
   'Every institution can ask for something we have not anticipated, and requirements '
@@ -211,7 +211,7 @@ export function buildPackDocument(opts: {
       },
       {
         kind: 'para',
-        text: 'A person at Virasat reviewed and approved this pack before it was sent '
+        text: 'A person at Mera Hissa reviewed and approved this pack before it was sent '
           + 'to you. If anything here does not match your situation, tell us and we '
           + 'will correct it at no charge.',
       },
