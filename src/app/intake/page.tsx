@@ -347,7 +347,7 @@ export default function Intake() {
 
             <div className="notice">
               We will work out what each institution needs and prepare the documents.
-              A person at Virasat checks every pack before it reaches you.
+              A person at Mera Hissa checks every pack before it reaches you.
             </div>
           </>
         )}

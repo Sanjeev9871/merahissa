@@ -1,5 +1,5 @@
 -- ===========================================================================
--- Virasat — initial schema
+-- Mera Hissa — initial schema
 --
 -- Security model:
 --   1. Every table has RLS ENABLED and FORCED. There is no table a logged-in

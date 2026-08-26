@@ -56,7 +56,7 @@ export function LeadForm({ source, caseSummary, heading, blurb }: {
         <h2>Thank you &mdash; we have your details</h2>
         <p style={{ margin: 0 }}>
           Someone will be in touch within one working day. If it is urgent, email us at{' '}
-          <a href="mailto:hello@virasat.in">hello@virasat.in</a> and we will move it up.
+          <a href="mailto:hello@merahissa.in">hello@merahissa.in</a> and we will move it up.
         </p>
       </div>
     );

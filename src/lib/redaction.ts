@@ -1,5 +1,5 @@
 /**
- * PII redaction — the single most security-critical module in Virasat.
+ * PII redaction — the single most security-critical module in Mera Hissa.
  *
  * THE RULE: no real person's identifying data ever reaches a third-party AI
  * provider. We use free-tier inference, which means the provider is untrusted

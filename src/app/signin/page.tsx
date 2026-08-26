@@ -89,7 +89,7 @@ function SignInForm() {
               style={{ marginTop: '0.35rem' }}
             />
             <span>
-              I agree that Virasat may collect and use the details and documents I
+              I agree that Mera Hissa may collect and use the details and documents I
               provide, for the sole purpose of preparing my claim documents. I understand
               they are stored encrypted, deleted 90 days after my case closes, never used
               to train any AI system, and that I can ask for deletion at any time.

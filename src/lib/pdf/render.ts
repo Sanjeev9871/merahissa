@@ -204,7 +204,7 @@ export async function renderPack(doc: PackDocument): Promise<Uint8Array> {
 
   // No author, no producer, no creator: PDF metadata is a well-known leak
   // path, and a pack may be forwarded to a bank, a lawyer and three relatives.
-  pdf.setTitle(`Virasat pack ${doc.caseRef}`);
+  pdf.setTitle(`Mera Hissa pack ${doc.caseRef}`);
   pdf.setSubject('Estate transmission documents');
   pdf.setProducer('');
   pdf.setCreator('');

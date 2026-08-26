@@ -35,7 +35,7 @@ type LeadInsert = {
  *
  * The response is deliberately identical whether or not we already hold this
  * person's details — otherwise the form becomes a way to test whether a given
- * email address has used Virasat, which for a bereavement service is a real
+ * email address has used Mera Hissa, which for a bereavement service is a real
  * privacy leak.
  */
 export async function POST(request: NextRequest) {
