@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic';
  * Magic-link callback. Exchanges the code for a session and records consent.
  *
  * Note the `next` handling: an open redirect here would let an attacker send
- * a legitimate-looking Virasat sign-in link that lands the user on their own
+ * a legitimate-looking Mera Hissa sign-in link that lands the user on their own
  * site, session in hand. Only same-origin relative paths are accepted.
  */
 export async function GET(request: NextRequest) {

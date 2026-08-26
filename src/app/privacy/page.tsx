@@ -1,4 +1,4 @@
-export const metadata = { title: 'Privacy — Virasat' };
+export const metadata = { title: 'Privacy — Mera Hissa' };
 
 /**
  * Privacy notice.
@@ -90,7 +90,7 @@ export default function Privacy() {
 
       <h2>Who else sees it</h2>
       <ul>
-        <li>The Virasat reviewer who checks your pack before it reaches you.</li>
+        <li>The Mera Hissa reviewer who checks your pack before it reaches you.</li>
         <li>Supabase, who host the database and file storage.</li>
         <li>The AI provider &mdash; placeholders only, as described above.</li>
         <li>Razorpay, for payment. We never see or store your card or UPI details.</li>

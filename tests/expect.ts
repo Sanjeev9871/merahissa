@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 /**
  * A ~60-line expect() over node:assert.
  *
- * Virasat runs its tests on Node's built-in test runner rather than Vitest or
+ * Mera Hissa runs its tests on Node's built-in test runner rather than Vitest or
  * Jest. Rationale: the test suite that guards PII redaction and statutory
  * share computation should have zero third-party dependencies. A supply-chain
  * compromise in a test framework is a compromise of the thing verifying our

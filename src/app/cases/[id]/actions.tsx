@@ -49,7 +49,7 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
       order_id: order.orderId,
       amount: order.amountPaise,
       currency: 'INR',
-      name: 'Virasat',
+      name: 'Mera Hissa',
       description: order.tierLabel,
       // We do NOT mark the case paid here. This handler only refreshes the
       // page; the webhook is what actually records payment, because a client
@@ -123,7 +123,7 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
         <>
           <h2>We are checking a few things</h2>
           <p>
-            Someone at Virasat is reviewing your pack before it comes to you. We will
+            Someone at Mera Hissa is reviewing your pack before it comes to you. We will
             email you when it is ready &mdash; usually within one working day.
           </p>
         </>

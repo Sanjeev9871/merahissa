@@ -6,15 +6,15 @@
  * Node's type stripping and cannot parse JSX.
  */
 export const SITE = {
-  name: 'Virasat',
+  name: 'Mera Hissa',
   // Set NEXT_PUBLIC_SITE_URL in production; every canonical URL derives from it.
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://virasat.in',
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://merahissa.in',
   tagline: 'Estate claim paperwork for Indian families',
   description:
     'Find out exactly which documents each bank, fund and insurer needs to release '
     + 'a family member\'s money, and what the law says each heir inherits. '
     + 'Free check, no account needed.',
   locale: 'en_IN',
-  email: 'hello@virasat.in',
+  email: 'hello@merahissa.in',
   phone: '+91-00000-00000',
 } as const;
