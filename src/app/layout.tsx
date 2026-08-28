@@ -32,9 +32,11 @@ export const metadata: Metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
+  // Match the real page ground (--ground) so the mobile browser chrome does not
+  // show a faint seam against the page.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F3F5F2' },
-    { media: '(prefers-color-scheme: dark)', color: '#0F1311' },
+    { media: '(prefers-color-scheme: light)', color: '#faf8f5' },
+    { media: '(prefers-color-scheme: dark)', color: '#16150f' },
   ],
 };
 
@@ -65,6 +67,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               service lawful for a non-advocate operator. It appears on every
               page and inside every generated pack. */}
           <footer className="site-footer">
+            {/* Owns the footer's column headings so a heading-only page (e.g.
+                /signin) does not skip from its h1 straight to the footer h3s. */}
+            <h2 className="visually-hidden">About Mera Hissa</h2>
             <div className="foot-cols">
               <div>
                 <h3>Mera Hissa</h3>

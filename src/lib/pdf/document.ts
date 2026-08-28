@@ -1,6 +1,6 @@
 import type { Narrative } from '../pipeline';
 import type { RequirementResult } from '../requirements';
-import { fractionToString, type ShareResult } from '../succession';
+import { fractionToString, type ShareResult } from '../succession.ts';
 
 /**
  * Document CONTENT, separated from rendering.

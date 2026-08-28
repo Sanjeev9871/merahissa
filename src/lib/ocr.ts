@@ -1,7 +1,7 @@
 'use client';
 
 import { createWorker, type Worker } from 'tesseract.js';
-import { extractFields, type ExtractedField } from './ocr-fields';
+import { extractFields, type ExtractedField } from './ocr-fields.ts';
 
 export { extractFields, type ExtractedField };
 

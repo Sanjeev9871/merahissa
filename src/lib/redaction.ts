@@ -123,6 +123,26 @@ function token(kind: string, index: number): string {
 }
 
 /**
+ * A neutral, non-identifying label for each asset kind. An {{ASSET_n}} token
+ * has no real "value" the way a name or account does, so if the model echoes
+ * one it rehydrates to a readable phrase ("bank account") rather than surviving
+ * as an unresolved placeholder that falsely trips the hallucination hold.
+ */
+const ASSET_KIND_LABEL: Record<AssetKind, string> = {
+  bank_deposit: 'bank account',
+  demat_shares: 'demat shareholding',
+  mutual_fund: 'mutual fund holding',
+  insurance_policy: 'insurance policy',
+  epf: 'provident fund (EPF) account',
+  ppf: 'PPF account',
+  nps: 'NPS account',
+  iepf_shares: 'shareholding transferred to the IEPF',
+  post_office: 'post office savings account',
+  safe_deposit: 'safe deposit locker',
+  other: 'holding',
+};
+
+/**
  * Institution names are NOT personal data — "State Bank of India" identifies
  * nobody. We still tokenise them so the model cannot infer a household's
  * banking relationships from a prompt that gets logged provider-side, but we
@@ -148,6 +168,9 @@ export function redactCase(input: CaseInput): { payload: RedactedCase; map: Toke
 
   const assets = input.assets.map((a, i) => {
     const assetToken = token('ASSET', i + 1);
+    // Register the asset token so it always resolves on the way back out.
+    map.set(assetToken, ASSET_KIND_LABEL[a.kind] ?? 'holding');
+
     const instToken = token('INSTITUTION', i + 1);
     map.set(instToken, a.institution);
 

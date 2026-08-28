@@ -54,9 +54,7 @@ export default function FaqPage() {
           each person inherits, and which documents your institutions will ask for.
         </p>
         <div className="cta-row">
-          <Link href="/triage">
-            <button className="btn btn-lg" type="button">Check what my case needs</button>
-          </Link>
+          <Link href="/triage" className="btn btn-lg">Check what my case needs</Link>
           <span className="cta-note">Free &middot; no account &middot; two minutes</span>
         </div>
       </section>

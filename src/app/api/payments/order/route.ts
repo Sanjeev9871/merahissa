@@ -152,12 +152,13 @@ export async function POST(request: NextRequest) {
     .from('payments')
     .insert(payment as never);
 
-  await supabaseServer().then((s) =>
-    s
-      .from('cases')
-      .update({ status: 'awaiting_payment' } as never)
-      .eq('id', kase.id),
-  );
+  // Ownership was already proven by the user-client read above; the status
+  // transition itself goes through the service role because the family has no
+  // UPDATE privilege on public.cases (migration 0003).
+  await supabaseAdmin()
+    .from('cases')
+    .update({ status: 'awaiting_payment' } as never)
+    .eq('id', kase.id);
 
   await audit('payment.verified', {
     actorId: user.id,

@@ -1,4 +1,4 @@
-import { supabaseAdmin } from './supabase/server';
+import { supabaseAdmin } from './supabase/server.ts';
 
 /**
  * Append-only audit trail.
