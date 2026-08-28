@@ -30,23 +30,30 @@ function SignInForm() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-        // Recorded against the profile on first sign-in so we can prove which
-        // version of the notice was agreed to, as DPDP requires.
-        data: { consent_version: CONSENT_VERSION },
-      },
-    });
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          // Recorded against the profile on first sign-in so we can prove which
+          // version of the notice was agreed to, as DPDP requires.
+          data: { consent_version: CONSENT_VERSION },
+        },
+      });
 
-    if (error) {
+      if (error) {
+        setState('error');
+        setMessage('We could not send the code. Please check the address and try again.');
+        return;
+      }
+
+      setState('sent');
+    } catch {
+      // A network failure rejects rather than returning an error, and without
+      // this the button would sit on "Sending…" forever.
       setState('error');
-      setMessage('We could not send the code. Please check the address and try again.');
-      return;
+      setMessage('We could not reach the server. Please check your connection and try again.');
     }
-
-    setState('sent');
   }
 
   if (state === 'sent') {
@@ -97,7 +104,7 @@ function SignInForm() {
           </label>
         </div>
 
-        {state === 'error' && <p className="error">{message}</p>}
+        {state === 'error' && <p className="error" role="alert">{message}</p>}
 
         <button className="primary" type="submit" disabled={state === 'sending' || !consent}>
           {state === 'sending' ? 'Sending…' : 'Email me a sign-in link'}

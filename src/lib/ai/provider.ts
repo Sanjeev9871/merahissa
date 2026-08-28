@@ -1,4 +1,4 @@
-import { assertNoPii } from '../redaction';
+import { assertNoPii } from '../redaction.ts';
 
 /**
  * AI provider adapter.

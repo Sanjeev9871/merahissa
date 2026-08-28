@@ -17,24 +17,31 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [paidPending, setPaidPending] = useState(false);
   const [confirmText, setConfirmText] = useState('');
 
   async function pay() {
     setBusy(true); setError('');
 
-    const res = await fetch('/api/payments/order', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ caseId }),
-    });
+    let order;
+    try {
+      const res = await fetch('/api/payments/order', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ caseId }),
+      });
 
-    if (!res.ok) {
-      setError('We could not start the payment. Please try again in a moment.');
+      if (!res.ok) {
+        setError('We could not start the payment. Please try again in a moment.');
+        setBusy(false);
+        return;
+      }
+      order = await res.json();
+    } catch {
+      setError('We could not reach the payment service. Please check your connection and try again.');
       setBusy(false);
       return;
     }
-
-    const order = await res.json();
 
     // Loaded on demand so Razorpay's script is not on every page.
     await loadRazorpay();
@@ -51,10 +58,12 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
       currency: 'INR',
       name: 'Mera Hissa',
       description: order.tierLabel,
-      // We do NOT mark the case paid here. This handler only refreshes the
-      // page; the webhook is what actually records payment, because a client
-      // callback can be skipped, replayed, or forged.
-      handler: () => router.refresh(),
+      // We do NOT mark the case paid here. The webhook is what actually records
+      // payment, because a client callback can be skipped, replayed or forged.
+      // So the case has almost certainly NOT flipped to 'paid' yet: clear the
+      // spinner and show an explicit "confirming" state rather than leaving the
+      // Pay button stuck reading "Opening payment…" as if nothing happened.
+      handler: () => { setBusy(false); setPaidPending(true); router.refresh(); },
       modal: { ondismiss: () => setBusy(false) },
       theme: { color: '#6b4423' },
     }).open();
@@ -62,17 +71,27 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
 
   async function generate() {
     setBusy(true); setError('');
-    const res = await fetch(`/api/cases/${caseId}/generate`, { method: 'POST' });
-    setBusy(false);
-    if (res.ok) router.refresh();
-    else setError('We could not prepare the documents just now. We have been notified.');
+    try {
+      const res = await fetch(`/api/cases/${caseId}/generate`, { method: 'POST' });
+      if (res.ok) router.refresh();
+      else setError('We could not prepare the documents just now. We have been notified.');
+    } catch {
+      setError('We could not reach the server. Please check your connection and try again.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function remove() {
-    setBusy(true);
-    const res = await fetch(`/api/cases/${caseId}`, { method: 'DELETE' });
-    if (res.ok) router.push('/cases');
-    else { setError('We could not delete this case.'); setBusy(false); }
+    setBusy(true); setError('');
+    try {
+      const res = await fetch(`/api/cases/${caseId}`, { method: 'DELETE' });
+      if (res.ok) { router.push('/cases'); return; }
+      setError('We could not delete this case.');
+    } catch {
+      setError('We could not reach the server. Please check your connection and try again.');
+    }
+    setBusy(false);
   }
 
   if (deleteOnly) {
@@ -94,9 +113,19 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
 
   return (
     <div className="card">
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
 
-      {(status === 'intake_complete' || status === 'awaiting_payment') && (
+      {paidPending && (status === 'intake_complete' || status === 'awaiting_payment') && (
+        <div role="status">
+          <h2>Payment received</h2>
+          <p>
+            Thank you. We are confirming it with the bank &mdash; this usually takes a few
+            moments. Refresh this page shortly to continue.
+          </p>
+        </div>
+      )}
+
+      {!paidPending && (status === 'intake_complete' || status === 'awaiting_payment') && (
         <>
           <h2>Prepare my documents</h2>
           <p>{tierLabel} &mdash; <strong>{priceLabel}</strong>, one fixed fee.</p>

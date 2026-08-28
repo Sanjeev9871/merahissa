@@ -1,4 +1,15 @@
-export const metadata = { title: 'Privacy — Mera Hissa' };
+import { pageMeta } from '@/lib/seo';
+
+// Via pageMeta so the page gets a canonical URL and the brand is appended once
+// by the layout template — not hardcoded, which produced "Privacy — Mera Hissa
+// · Mera Hissa" and no canonical while the sitemap still submitted the page.
+export const metadata = pageMeta({
+  title: 'Privacy',
+  description:
+    'What Mera Hissa collects, how documents are stored and deleted, what the AI '
+    + 'never sees, and your rights under the Digital Personal Data Protection Act.',
+  path: '/privacy',
+});
 
 /**
  * Privacy notice.

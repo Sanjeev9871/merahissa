@@ -35,20 +35,25 @@ export function LeadForm({ source, caseSummary, heading, blurb }: {
     setState('sending');
     setError('');
 
-    const res = await fetch('/api/leads', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        name, email, phone, message, source, caseSummary,
-        consentToContact: consent, consentToUpdates: updates,
-      }),
-    });
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name, email, phone, message, source, caseSummary,
+          consentToContact: consent, consentToUpdates: updates,
+        }),
+      });
 
-    if (res.ok) { setState('done'); return; }
+      if (res.ok) { setState('done'); return; }
 
-    const body = await res.json().catch(() => ({}));
-    setError(body.error ?? 'We could not send that just now. Please try again.');
-    setState('idle');
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? 'We could not send that just now. Please try again.');
+      setState('idle');
+    } catch {
+      setError('We could not reach the server. Please check your connection and try again.');
+      setState('idle');
+    }
   }
 
   if (state === 'done') {
@@ -114,7 +119,7 @@ export function LeadForm({ source, caseSummary, heading, blurb }: {
         </label>
       </div>
 
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" role="alert">{error}</p>}
 
       <button className="btn" type="submit" disabled={state === 'sending' || !consent}>
         {state === 'sending' ? 'Sending…' : 'Ask us to get in touch'}

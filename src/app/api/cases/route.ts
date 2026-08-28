@@ -53,6 +53,11 @@ export async function POST(request: NextRequest) {
       status: 'intake_complete',
       deceased_name: input.deceasedName,
       deceased_dod: input.deceasedDateOfDeath ?? null,
+      // Drives the female-intestate branch of the share engine (HSA s.15/16).
+      // Collected and validated at intake but previously dropped here, so every
+      // downstream read fell back to the column default and computed a woman's
+      // estate under the male rules.
+      deceased_was_female: input.deceasedWasFemale,
       regime: input.regime,
       has_will: input.hasWill,
       will_is_registered: input.willIsRegistered,

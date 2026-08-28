@@ -1,12 +1,12 @@
 import {
   redactCase, rehydrate, type CaseInput, type RedactedCase, type TokenMap,
-} from './redaction';
-import { computeShares, fractionToString, type Heir as SuccessionHeir, type ShareResult } from './succession';
+} from './redaction.ts';
+import { computeShares, fractionToString, type Heir as SuccessionHeir, type ShareResult } from './succession.ts';
 import {
   requirementsFor, buildManifest, blocksAutoGeneration,
   type RequirementResult,
-} from './requirements';
-import { completeJson, AiError } from './ai/provider';
+} from './requirements.ts';
+import { completeJson, AiError } from './ai/provider.ts';
 
 /**
  * Pack generation pipeline.
@@ -79,9 +79,18 @@ function buildUserPrompt(
   payload: RedactedCase,
   shares: ShareResult,
   requirements: RequirementResult[],
+  heirTokenById: Map<string, string>,
 ): string {
   const shareLines = shares.shares
-    .map((s) => `  - ${s.heirId}: ${fractionToString(s.share)} (${s.basis})`)
+    .map((s) => {
+      // Emit the heir's TOKEN, not the raw database id. Two reasons: the id is
+      // a real UUID that has no business reaching a third-party model, and the
+      // share list is claimants-only in a re-ordered sequence, so a positional
+      // "ids correspond to tokens in order" instruction was simply false and
+      // let the model attribute a share to the wrong person.
+      const who = heirTokenById.get(s.heirId) ?? s.heirId;
+      return `  - ${who}: ${fractionToString(s.share)} (${s.basis})`;
+    })
     .join('\n');
 
   const docLines = requirements
@@ -117,8 +126,8 @@ ${shares.authorities.map((a) => `  - ${a}`).join('\n') || '  (none)'}
 DOCUMENTS ALREADY SELECTED (do not add or remove)
 ${docLines || '  (none)'}
 
-Map each heir id above to its token when you write. Heir ids and tokens
-correspond in the order listed.`;
+Every person is referred to only by their token (for example {{HEIR_1}}). The
+share list above already uses those tokens. Use the tokens exactly as written.`;
 }
 
 export async function generatePack(input: GenerationInput): Promise<GenerationResult> {
@@ -164,6 +173,13 @@ export async function generatePack(input: GenerationInput): Promise<GenerationRe
   // --- 2. Redact -----------------------------------------------------------
   const { payload, map } = redactCase(input);
 
+  // redactCase assigns heir tokens in input order, so input.heirs[i] and
+  // payload.heirs[i] line up. This lets the share lines reference each heir by
+  // token instead of by the raw database id.
+  const heirTokenById = new Map(
+    input.heirs.map((h, i) => [h.id, payload.heirs[i]!.token]),
+  );
+
   // --- 3. Ask the model, for prose only ------------------------------------
   let narrative: Narrative | null = null;
   let unresolvedTokens: string[] = [];
@@ -175,7 +191,7 @@ export async function generatePack(input: GenerationInput): Promise<GenerationRe
       maxTokens: 2500,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: buildUserPrompt(payload, shares, requirements) },
+        { role: 'user', content: buildUserPrompt(payload, shares, requirements, heirTokenById) },
       ],
     });
 

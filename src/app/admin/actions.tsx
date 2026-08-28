@@ -18,16 +18,35 @@ export function ReviewActions({ packId, caseId, held }: {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [notes, setNotes] = useState('');
+  const [error, setError] = useState('');
 
   async function act(action: 'approve' | 'reject') {
     setBusy(true);
-    const res = await fetch(`/api/admin/packs/${packId}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ action, notes, caseId }),
-    });
-    setBusy(false);
-    if (res.ok) router.refresh();
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/packs/${packId}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action, notes, caseId }),
+      });
+
+      if (res.ok) {
+        router.refresh();
+        return;
+      }
+
+      // Surface the failure rather than leaving the click looking like a no-op:
+      // a 401 (expired session), the 409 for approving a held pack, or a 500.
+      const body = await res.json().catch(() => ({}));
+      setError(
+        body.error
+          ?? `That did not go through (error ${res.status}). Nothing was changed.`,
+      );
+    } catch {
+      setError('We could not reach the server. Check your connection and try again.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -56,6 +75,8 @@ export function ReviewActions({ packId, caseId, held }: {
           Reject and hold
         </button>
       </div>
+
+      {error && <p className="error" role="alert" style={{ marginTop: '0.75rem' }}>{error}</p>}
     </div>
   );
 }

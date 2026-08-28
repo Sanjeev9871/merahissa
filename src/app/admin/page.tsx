@@ -36,7 +36,7 @@ type AdminPack = {
 export default async function AdminQueue() {
   const db = supabaseAdmin();
 
-  const { data: packs } = await db
+  const { data: packs, error: packsError } = await db
     .from('packs')
     .select(
       'id, case_id, version, status, model_notes, template_manifest, created_at'
@@ -44,6 +44,7 @@ export default async function AdminQueue() {
     .in('status', ['queued', 'generated'])
     .order('created_at', { ascending: true }) as {
       data: AdminPack[] | null;
+      error: { message: string } | null;
     };
 
   const stale = ruleSets().filter(
@@ -90,7 +91,15 @@ export default async function AdminQueue() {
         </div>
       )}
 
-      {!packs || packs.length === 0 ? (
+      {packsError ? (
+        <div className="notice warn" role="alert">
+          <strong>The review queue could not be loaded.</strong>
+          <p style={{ margin: '0.5rem 0 0' }}>
+            This is a system error, not an empty queue — packs may be waiting.
+            Refresh in a moment; if it persists, check Supabase.
+          </p>
+        </div>
+      ) : !packs || packs.length === 0 ? (
         <p>Nothing waiting.</p>
       ) : (
         packs.map((p) => {
@@ -110,7 +119,10 @@ export default async function AdminQueue() {
                   ? 'HELD — needs work before it can be approved'
                   : 'Generated — ready to review'}
                 {' · '}
-                {new Date(p.created_at).toLocaleString('en-IN')}
+                {new Date(p.created_at).toLocaleString('en-IN', {
+                  timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short',
+                })}
+                {' IST'}
               </p>
 
               {notes.holdReasons && notes.holdReasons.length > 0 && (

@@ -63,8 +63,8 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
             A person at Mera Hissa has checked this pack. Print the affidavit and indemnity
             bond on stamp paper of the value your state requires.
           </p>
-          <a href={`/api/packs/${approved.id}/download`}>
-            <button className="primary" type="button">Download the pack</button>
+          <a className="primary" href={`/api/packs/${approved.id}/download`}>
+            Download the pack
           </a>
         </div>
       ) : null}

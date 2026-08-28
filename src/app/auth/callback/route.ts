@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { supabaseServer } from '@/lib/supabase/server';
+import { supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { hashForAudit } from '@/lib/crypto';
 import { safeRedirect } from '@/lib/safe-redirect';
 
@@ -36,14 +36,18 @@ export async function GET(request: NextRequest) {
       ?? 'unversioned';
 
     // The IP is hashed, never stored. It proves consent came from a consistent
-    // origin without us holding an address we have no use for.
+    // origin without us holding an address we have no use for. hashForAudit
+    // returns null when no salt is configured rather than a brute-forceable
+    // unsalted hash, so the column is simply left empty in that case.
     const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
 
-    await supabase.from('profiles').update({
+    // Written through the service role: the consent columns are not user-
+    // writable (migration 0003 grants the family only full_name and phone).
+    await supabaseAdmin().from('profiles').update({
       consent_version: version,
       consent_at: new Date().toISOString(),
       consent_ip_hash: forwarded ? hashForAudit(forwarded) : null,
-    }).eq('id', data.user.id);
+    } as never).eq('id', data.user.id);
   }
 
   return NextResponse.redirect(new URL(next, request.url));

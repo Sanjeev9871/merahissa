@@ -1,4 +1,5 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import type { User } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
@@ -143,9 +144,19 @@ export async function middleware(request: NextRequest) {
 
   // getUser() revalidates against Supabase. getSession() only decodes the
   // cookie, which a client can forge, so it must not be used for auth checks.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getUser() revalidates against Supabase over the network. Wrap it so an
+  // auth-service outage (or a single bad env var) degrades to "signed out"
+  // rather than returning 500 for every route — including the public marketing
+  // pages, which carry no session and nothing to protect. The API routes are
+  // excluded from the matcher entirely, so the payment webhook and cron purge
+  // never pay for this call.
+  let user: User | null = null;
+  try {
+    const result = await supabase.auth.getUser();
+    user = result.data.user;
+  } catch (e) {
+    console.error('[middleware] auth check failed; treating request as signed out', e);
+  }
 
   const path = request.nextUrl.pathname;
 
@@ -172,13 +183,21 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single();
+    // Fail closed: if the admin lookup cannot be confirmed (Supabase down, or
+    // it throws), deny access rather than fall through to the queue.
+    let isAdmin = false;
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+      isAdmin = Boolean(profile?.is_admin);
+    } catch (e) {
+      console.error('[middleware] admin check failed; denying access', e);
+    }
 
-    if (!profile?.is_admin) {
+    if (!isAdmin) {
       // 404, not 403. A 403 confirms /admin exists and is worth attacking.
       return new NextResponse('Not found', {
         status: 404,
@@ -201,7 +220,9 @@ const COOKIE_HARDENING: Partial<CookieOptions> = {
 
 export const config = {
   matcher: [
-    // Everything except static assets and the favicon.
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Everything except static assets, the favicon, and the API. API routes
+    // authenticate themselves and return JSON that needs no CSP nonce, so the
+    // payment webhook and cron purge must not carry a Supabase auth round trip.
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { GUIDES, guideBySlug } from '@/lib/guides';
-import { pageMeta, breadcrumbJsonLd, howToJsonLd, JsonLd, SITE } from '@/lib/seo';
+import { pageMeta, breadcrumbJsonLd, JsonLd, SITE } from '@/lib/seo';
 
 /** Static generation: these are the pages that need to be fast for crawlers. */
 export function generateStaticParams() {
@@ -31,7 +31,10 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           { name: 'Guides', path: '/guides' },
           { name: guide.h1, path: `/guides/${guide.slug}` },
         ]),
-        howToJsonLd(),
+        // No HowTo schema here. It was one generic set of steps emitted on every
+        // guide regardless of content, and its step text appears nowhere in the
+        // visible page — a structured-data mismatch and a manual-action risk.
+        // Breadcrumb and Article both describe every guide accurately.
         {
           '@context': 'https://schema.org',
           '@type': 'Article',
@@ -70,9 +73,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             accounts, and tells you the shares and the document list in two minutes.
           </p>
           <div className="cta-row">
-            <Link href="/triage">
-              <button className="btn btn-lg" type="button">Check my case</button>
-            </Link>
+            <Link href="/triage" className="btn btn-lg">Check my case</Link>
             <span className="cta-note">Free &middot; no account needed</span>
           </div>
         </section>
