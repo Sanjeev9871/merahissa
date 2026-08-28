@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ASSET_KINDS, REGIMES, RELATIONSHIPS, VALUE_BANDS } from '@/lib/validation';
 
@@ -46,14 +46,29 @@ interface AssetRow {
   valueBand: string; hasNomination: string; isJoint: boolean;
 }
 
+// A plain counter, not crypto.randomUUID(): these keys never leave the client,
+// and crypto.randomUUID is undefined in a non-secure context (opening the app
+// over plain HTTP on a LAN IP to test on a phone), where it would throw during
+// render and take the whole page down.
+let rowSeq = 0;
+const uid = () => `row-${rowSeq++}`;
+
 const newHeir = (): HeirRow => ({
-  key: crypto.randomUUID(), fullName: '', relationship: 'spouse',
+  key: uid(), fullName: '', relationship: 'spouse',
   isMinor: false, isClaimant: true,
 });
 const newAsset = (): AssetRow => ({
-  key: crypto.randomUUID(), kind: 'bank_deposit', institution: '',
+  key: uid(), kind: 'bank_deposit', institution: '',
   accountLast4: '', valueBand: 'unknown', hasNomination: 'unsure', isJoint: false,
 });
+
+/** Which wizard step owns the first field in a set of server error keys. */
+function firstErrorStep(keys: string[]): number {
+  if (keys.some((k) => k.startsWith('deceased') || k === 'regime')) return 0;
+  if (keys.some((k) => k.startsWith('heirs'))) return 1;
+  if (keys.some((k) => k.startsWith('assets'))) return 2;
+  return 0;
+}
 
 export default function Intake() {
   const router = useRouter();
@@ -69,32 +84,57 @@ export default function Intake() {
   const [heirs, setHeirs] = useState<HeirRow[]>([newHeir()]);
   const [assets, setAssets] = useState<AssetRow[]>([newAsset()]);
 
+  // Today's date for the date-of-death cap, computed on the client in the
+  // user's own timezone. Doing it inline as new Date().toISOString() ran on
+  // both the server and the client (a hydration mismatch across UTC midnight)
+  // and used UTC, so between 00:00 and 05:30 IST it refused today's date.
+  const [maxDod, setMaxDod] = useState('');
+  useEffect(() => {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    setMaxDod(local.toISOString().slice(0, 10));
+  }, []);
+
   async function submit() {
     setSubmitting(true);
     setErrors({});
 
-    const res = await fetch('/api/cases', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        deceasedName,
-        deceasedDateOfDeath: dod || undefined,
-        deceasedWasFemale: wasFemale,
-        regime, hasWill, willIsRegistered: null,
-        heirs: heirs.map(({ key: _key, ...h }) => h),
-        assets: assets.map(({ key: _key, accountLast4, hasNomination, ...a }) => ({
-          ...a,
-          accountLast4: accountLast4 || undefined,
-          hasNomination: hasNomination === 'unsure' ? null : hasNomination === 'yes',
-        })),
-      }),
-    });
+    let res: Response;
+    try {
+      res = await fetch('/api/cases', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          deceasedName,
+          deceasedDateOfDeath: dod || undefined,
+          deceasedWasFemale: wasFemale,
+          regime, hasWill, willIsRegistered: null,
+          heirs: heirs.map(({ key: _key, ...h }) => h),
+          assets: assets.map(({ key: _key, accountLast4, hasNomination, ...a }) => ({
+            ...a,
+            accountLast4: accountLast4 || undefined,
+            hasNomination: hasNomination === 'unsure' ? null : hasNomination === 'yes',
+          })),
+        }),
+      });
+    } catch {
+      setErrors({ _form: 'We could not reach the server. Please check your connection and try again.' });
+      setSubmitting(false);
+      return;
+    }
 
     if (res.status === 422) {
-      const body = await res.json();
-      setErrors(body.errors ?? {});
+      const body = await res.json().catch(() => ({}));
+      const fieldErrors: Record<string, string> = body.errors ?? {};
+      // Take the user to the step that actually owns the first problem and tell
+      // them something is wrong, rather than dropping them on step 1 with the
+      // heir/asset error messages rendered on a step that never shows them.
+      setErrors({
+        ...fieldErrors,
+        _form: 'Some details need fixing. We have taken you to the first one.',
+      });
       setSubmitting(false);
-      setStep(0);   // send them back to the top so they can find the problem
+      setStep(firstErrorStep(Object.keys(fieldErrors)));
       return;
     }
 
@@ -113,11 +153,12 @@ export default function Intake() {
       <h1>Tell us about the estate</h1>
       <p>Four short steps. You can go back and change anything before you submit.</p>
 
-      <ol className="steps" aria-label="Progress">
+      <p className="visually-hidden" role="status">Step {step + 1} of 4</p>
+      <ol className="steps" aria-hidden="true">
         {[0, 1, 2, 3].map((i) => <li key={i} data-done={String(i <= step)} />)}
       </ol>
 
-      {errors._form && <div className="notice warn">{errors._form}</div>}
+      {errors._form && <div className="notice warn" role="alert">{errors._form}</div>}
 
       <div className="card">
         {step === 0 && (
@@ -126,19 +167,23 @@ export default function Intake() {
             <div className="field">
               <label htmlFor="dn">Their full name, spelled as it appears on their documents</label>
               <input id="dn" type="text" value={deceasedName}
+                aria-invalid={Boolean(errors.deceasedName)}
+                aria-describedby={errors.deceasedName ? 'dn-error' : undefined}
                 onChange={(e) => setDeceasedName(e.target.value)} />
               <span className="hint">
                 Spelling matters here &mdash; banks match this against their records.
               </span>
-              {errors.deceasedName && <span className="error">{errors.deceasedName}</span>}
+              {errors.deceasedName && <span className="error" id="dn-error">{errors.deceasedName}</span>}
             </div>
 
             <div className="field">
               <label htmlFor="dod">Date they passed away</label>
-              <input id="dod" type="date" value={dod} max={new Date().toISOString().slice(0, 10)}
+              <input id="dod" type="date" value={dod} max={maxDod || undefined}
+                aria-invalid={Boolean(errors.deceasedDateOfDeath)}
+                aria-describedby={errors.deceasedDateOfDeath ? 'dod-error' : undefined}
                 onChange={(e) => setDod(e.target.value)} />
               {errors.deceasedDateOfDeath && (
-                <span className="error">{errors.deceasedDateOfDeath}</span>
+                <span className="error" id="dod-error">{errors.deceasedDateOfDeath}</span>
               )}
             </div>
 
@@ -185,10 +230,12 @@ export default function Intake() {
                 <div className="field">
                   <label htmlFor={`hn-${h.key}`}>Full name</label>
                   <input id={`hn-${h.key}`} type="text" value={h.fullName}
+                    aria-invalid={Boolean(errors[`heirs.${i}.fullName`])}
+                    aria-describedby={errors[`heirs.${i}.fullName`] ? `hn-${h.key}-error` : undefined}
                     onChange={(e) => setHeirs(heirs.map((x) =>
                       x.key === h.key ? { ...x, fullName: e.target.value } : x))} />
                   {errors[`heirs.${i}.fullName`] && (
-                    <span className="error">{errors[`heirs.${i}.fullName`]}</span>
+                    <span className="error" id={`hn-${h.key}-error`}>{errors[`heirs.${i}.fullName`]}</span>
                   )}
                 </div>
 
@@ -258,10 +305,12 @@ export default function Intake() {
                   <label htmlFor={`ai-${a.key}`}>Which bank, company or fund?</label>
                   <input id={`ai-${a.key}`} type="text" value={a.institution}
                     placeholder="e.g. State Bank of India"
+                    aria-invalid={Boolean(errors[`assets.${i}.institution`])}
+                    aria-describedby={errors[`assets.${i}.institution`] ? `ai-${a.key}-error` : undefined}
                     onChange={(e) => setAssets(assets.map((x) =>
                       x.key === a.key ? { ...x, institution: e.target.value } : x))} />
                   {errors[`assets.${i}.institution`] && (
-                    <span className="error">{errors[`assets.${i}.institution`]}</span>
+                    <span className="error" id={`ai-${a.key}-error`}>{errors[`assets.${i}.institution`]}</span>
                   )}
                 </div>
 

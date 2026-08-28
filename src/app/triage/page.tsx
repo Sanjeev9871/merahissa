@@ -72,7 +72,8 @@ export default function Triage() {
         and we never ask for a name.
       </p>
 
-      <ol className="steps" aria-label="Progress">
+      <p className="visually-hidden" role="status">Step {step + 1} of 5</p>
+      <ol className="steps" aria-hidden="true">
         {[0, 1, 2, 3, 4].map((i) => <li key={i} data-done={String(i <= step)} />)}
       </ol>
 
@@ -291,9 +292,7 @@ function Summary({ regime, wasFemale, heirs, kinds, nomination }: {
         an account and asks for the details we actually need.
       </div>
 
-      <Link href="/intake">
-        <button className="primary" type="button">Prepare these documents for me</button>
-      </Link>
+      <Link href="/intake" className="primary">Prepare these documents for me</Link>
     </>
   );
 }

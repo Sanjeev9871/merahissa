@@ -97,9 +97,39 @@ export async function POST(
     );
   }
 
-  // Payment gate. Checked against the payments table, which only a verified
-  // webhook can write, not against anything the client told us.
-  if (kase.status !== 'paid' && kase.status !== 'generating') {
+  // A pack that has already been delivered (or the case closed) must not be
+  // silently regenerated — that would re-run the pipeline, queue a redundant
+  // pack, and knock the case back to 'in_review'. The UI never offers this, but
+  // the route is reachable directly.
+  if (kase.status === 'delivered' || kase.status === 'closed') {
+    return NextResponse.json(
+      { error: 'This case has already been prepared.' },
+      { status: 409 },
+    );
+  }
+
+  // Payment gate. Authoritative check against the payments table, which only a
+  // signature-verified webhook can write (payments_admin_write). We never trust
+  // cases.status for this: a client that could move its own case to 'paid'
+  // would otherwise unlock generation without paying.
+  const { data: capturedPayments, error: paymentLookupError } = await supabaseAdmin()
+    .from('payments')
+    .select('id')
+    .eq('case_id', id)
+    .eq('status', 'captured')
+    .limit(1);
+
+  if (paymentLookupError) {
+    // A transient failure of this lookup must not be reported to a paid family
+    // as "not paid". Fail as a retryable server error instead.
+    console.error('[generate] payment lookup failed', paymentLookupError);
+    return NextResponse.json(
+      { error: 'We could not confirm your payment just now. Please try again in a moment.' },
+      { status: 503 },
+    );
+  }
+
+  if (!capturedPayments || capturedPayments.length === 0) {
     return NextResponse.json(
       {
         error: 'This case has not been paid for yet.',
@@ -108,9 +138,11 @@ export async function POST(
     );
   }
 
-  await supabase
+  // Status is written with the service role; the family has no UPDATE privilege
+  // on public.cases (see migration 0003).
+  await supabaseAdmin()
     .from('cases')
-    .update({ status: 'generating' })
+    .update({ status: 'generating' } as never)
     .eq('id', id);
 
   const result = await generatePack({
@@ -170,65 +202,92 @@ export async function POST(
   }
 
   let storagePath: string | null = null;
+  const renderHoldReasons: string[] = [];
 
   // Only render a PDF for a pack that actually cleared the gate. A held case
   // has nothing worth rendering and rendering it invites someone downloading
   // it by mistake.
+  //
+  // The render is wrapped: pdf-lib's standard fonts are WinAnsi-only and throw
+  // on any character they cannot encode — a Devanagari name, a rupee sign in
+  // model prose. Previously that threw out of the route as a 500 AFTER the case
+  // had been moved to 'generating', permanently stranding a paid case that then
+  // failed identically on every retry. Now a render failure holds the pack for
+  // manual preparation with a reason the reviewer can act on.
   if (
     result.status === 'ready_for_review' &&
     result.narrative
   ) {
-    const heirNames = new Map(
-      (heirs ?? []).map((h) => [
-        h.id as string,
-        h.full_name as string,
-      ]),
-    );
-
-    const institutions = new Map(
-      (assets ?? []).map((a) => [
-        a.id as string,
-        a.institution as string,
-      ]),
-    );
-
-    const doc = buildPackDocument({
-      caseRef: `CASE-${id.slice(0, 8).toUpperCase()}`,
-      deceasedName: kase.deceased_name as string,
-      dateOfDeath:
-        (kase.deceased_dod as string | null) ?? null,
-      heirNames,
-      shares: result.shares,
-      requirements: result.requirements,
-      narrative: result.narrative,
-      manifest: result.manifest,
-      institutionByAsset: institutions,
-    });
-
-    // Compliance gate, not a formatting check. Throws rather than warns.
-    assertDisclaimerPresent(doc);
-
-    const bytes = await renderPack(doc);
-
-    storagePath = `${id}/pack-v${version}.pdf`;
-
-    const { error: uploadError } = await db.storage
-      .from('case-documents')
-      .upload(
-        storagePath,
-        bytes,
-        {
-          contentType: 'application/pdf',
-          upsert: true,
-        },
+    try {
+      const heirNames = new Map(
+        (heirs ?? []).map((h) => [
+          h.id as string,
+          h.full_name as string,
+        ]),
       );
 
-    if (uploadError) {
-      console.error(
-        '[generate] pack upload failed',
-        uploadError,
+      const institutions = new Map(
+        (assets ?? []).map((a) => [
+          a.id as string,
+          a.institution as string,
+        ]),
       );
+
+      const doc = buildPackDocument({
+        caseRef: `CASE-${id.slice(0, 8).toUpperCase()}`,
+        deceasedName: kase.deceased_name as string,
+        dateOfDeath:
+          (kase.deceased_dod as string | null) ?? null,
+        heirNames,
+        shares: result.shares,
+        requirements: result.requirements,
+        narrative: result.narrative,
+        manifest: result.manifest,
+        institutionByAsset: institutions,
+      });
+
+      // Compliance gate, not a formatting check. Throws rather than warns.
+      assertDisclaimerPresent(doc);
+
+      const bytes = await renderPack(doc);
+
+      storagePath = `${id}/pack-v${version}.pdf`;
+
+      const { error: uploadError } = await db.storage
+        .from('case-documents')
+        .upload(
+          storagePath,
+          bytes,
+          {
+            contentType: 'application/pdf',
+            upsert: true,
+          },
+        );
+
+      if (uploadError) {
+        console.error(
+          '[generate] pack upload failed',
+          uploadError,
+        );
+        storagePath = null;
+        renderHoldReasons.push(
+          'The prepared pack could not be stored. Held for manual preparation.',
+        );
+      }
+    } catch (renderError) {
+      console.error('[generate] pack render failed', renderError);
       storagePath = null;
+
+      const message =
+        renderError instanceof Error ? renderError.message : String(renderError);
+
+      renderHoldReasons.push(
+        /WinAnsi cannot encode/.test(message)
+          ? 'The pack could not be rendered because a name or value contains characters '
+            + 'the current PDF font cannot print (for example Devanagari script). Held for '
+            + 'manual preparation — a Unicode-capable font is needed to render this pack.'
+          : 'The pack failed to render and is held for manual preparation.',
+      );
     }
   }
 
@@ -249,7 +308,7 @@ export async function POST(
       template_manifest: result.manifest,
 
       model_notes: {
-        holdReasons: result.holdReasons,
+        holdReasons: [...result.holdReasons, ...renderHoldReasons],
         unresolvedTokens: result.unresolvedTokens,
         flags: result.narrative?.flags ?? [],
       },

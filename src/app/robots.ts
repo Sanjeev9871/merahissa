@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
       disallow: ['/api/', '/cases/', '/admin/', '/intake/', '/signin', '/auth/'],
     }],
     sitemap: `${SITE.url}/sitemap.xml`,
-    host: SITE.url,
+    // The Host directive takes a bare hostname, not a scheme-qualified URL.
+    host: new URL(SITE.url).host,
   };
 }
