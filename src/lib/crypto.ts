@@ -74,8 +74,14 @@ export function decryptPii(stored: string): string {
  * consent IP is the example. Storing a raw IP alongside a death certificate
  * is data we have no use for; a salted hash still proves consent came from a
  * consistent origin.
+ *
+ * Returns null when no salt is configured. An unsalted SHA-256 of an IP is
+ * brute-forceable across the whole IPv4 space in seconds, which defeats the
+ * point, so we would rather store nothing than store that. Callers treat null
+ * as "no hash recorded".
  */
-export function hashForAudit(value: string): string {
-  const salt = process.env.PII_ENCRYPTION_KEY ?? '';
+export function hashForAudit(value: string): string | null {
+  const salt = process.env.PII_ENCRYPTION_KEY;
+  if (!salt) return null;
   return createHash('sha256').update(`${salt}:${value}`).digest('hex');
 }

@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import { expect } from './expect.ts';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { SITE } from '../src/lib/site.ts';
 
 /**
@@ -16,7 +17,9 @@ import { SITE } from '../src/lib/site.ts';
  * promise is no longer true. Both need fixing before release.
  */
 
-const SRC = new URL('../src', import.meta.url).pathname;
+// fileURLToPath, not .pathname: on Windows .pathname yields "/C:/…/src" with a
+// leading slash that readdirSync cannot open.
+const SRC = fileURLToPath(new URL('../src', import.meta.url));
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
@@ -29,7 +32,9 @@ function walk(dir: string, out: string[] = []): string[] {
 
 const files = walk(SRC).map((path) => ({
   path,
-  rel: path.slice(SRC.length + 1),
+  // Normalise to forward slashes so the endsWith('a/b.ts') checks below work on
+  // Windows, where join() produces backslashes.
+  rel: path.slice(SRC.length + 1).replaceAll('\\', '/'),
   source: readFileSync(path, 'utf8'),
 }));
 
@@ -164,6 +169,9 @@ describe('row-level security is not bypassed casually', () => {
       // leads: anonymous inserts, so there is no user client to act as.
       // The insert-only RLS policy is what constrains it.
       'api/leads/route.ts',
+      // auth callback: records consent into columns the family is no longer
+      // permitted to write (migration 0003), so the write is a system action.
+      'auth/callback/route.ts',
       'admin/page.tsx',
     ];
     const users = serverFiles
@@ -177,7 +185,7 @@ describe('row-level security is not bypassed casually', () => {
 
 describe('the database enforces what the app claims', () => {
   const sql = readFileSync(
-    new URL('../supabase/migrations/0001_init.sql', import.meta.url).pathname, 'utf8',
+    fileURLToPath(new URL('../supabase/migrations/0001_init.sql', import.meta.url)), 'utf8',
   );
 
   // The migration aligns its columns, so compare against whitespace-collapsed
@@ -305,7 +313,7 @@ describe('lead capture stays an offer, not a gate', () => {
 
   it('lets the database enforce consent independently of the app', () => {
     const sql = readFileSync(
-      new URL('../supabase/migrations/0002_leads.sql', import.meta.url).pathname, 'utf8',
+      fileURLToPath(new URL('../supabase/migrations/0002_leads.sql', import.meta.url)), 'utf8',
     ).replace(/\s+/g, ' ');
 
     expect(sql).toContain('constraint lead_has_consent check (consent_to_contact = true)');

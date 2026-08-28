@@ -11,17 +11,32 @@ export const dynamic = 'force-dynamic';
  */
 export default async function Cases() {
   const supabase = await supabaseServer();
-  const { data: cases } = await supabase
+  const { data: cases, error } = await supabase
     .from('cases')
     .select('id, deceased_name, status, created_at, advocate_referral_needed')
     .order('created_at', { ascending: false });
+
+  if (error) {
+    return (
+      <>
+        <h1>Your cases</h1>
+        <div className="notice warn" role="alert">
+          <strong>We could not load your cases just now.</strong>
+          <p style={{ margin: '0.5rem 0 0' }}>
+            This is a temporary problem on our side, not a sign anything is lost.
+            Please refresh in a moment.
+          </p>
+        </div>
+      </>
+    );
+  }
 
   if (!cases || cases.length === 0) {
     return (
       <>
         <h1>Your cases</h1>
         <p>You have not started a case yet.</p>
-        <Link href="/intake"><button className="primary" type="button">Start a case</button></Link>
+        <Link href="/intake" className="primary">Start a case</Link>
       </>
     );
   }
@@ -31,27 +46,24 @@ export default async function Cases() {
       <h1>Your cases</h1>
 
       {cases.map((c) => (
-        <Link key={c.id as string} href={`/cases/${c.id}`}
-          style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div className="card">
-            <h2 style={{ marginBottom: '0.25rem' }}>{c.deceased_name as string}</h2>
-            <p className="hint" style={{ margin: 0 }}>
-              {statusLabel(c.status as string)}
-              {' · started '}
-              {new Date(c.created_at as string).toLocaleDateString('en-IN', {
-                day: 'numeric', month: 'long', year: 'numeric',
-              })}
+        <Link key={c.id as string} href={`/cases/${c.id}`} className="card as-card-link">
+          <h2 style={{ marginBottom: '0.25rem' }}>{c.deceased_name as string}</h2>
+          <p className="hint" style={{ margin: 0 }}>
+            {statusLabel(c.status as string)}
+            {' · started '}
+            {new Date(c.created_at as string).toLocaleDateString('en-IN', {
+              timeZone: 'Asia/Kolkata', day: 'numeric', month: 'long', year: 'numeric',
+            })}
+          </p>
+          {c.advocate_referral_needed ? (
+            <p className="hint" style={{ margin: '0.5rem 0 0' }}>
+              Needs an advocate for part of the process
             </p>
-            {c.advocate_referral_needed ? (
-              <p className="hint" style={{ margin: '0.5rem 0 0' }}>
-                Needs an advocate for part of the process
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </Link>
       ))}
 
-      <Link href="/intake"><button className="quiet" type="button">Start another case</button></Link>
+      <Link href="/intake" className="quiet">Start another case</Link>
     </>
   );
 }

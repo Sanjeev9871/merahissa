@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
-import { DISCLAIMER_FOOTER, type Block, type PackDocument } from './document';
+import { DISCLAIMER_FOOTER, type Block, type PackDocument } from './document.ts';
 
 /**
  * Rendering. Contains no decisions — every choice about what a pack says was

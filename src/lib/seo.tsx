@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { FAQS } from './faq';
-import { SITE } from './site';
+import { FAQS } from './faq.ts';
+import { SITE } from './site.ts';
 
 /**
  * SEO.
@@ -23,7 +23,7 @@ import { SITE } from './site';
  * worth linking to.
  */
 
-export { SITE } from './site';
+export { SITE } from './site.ts';
 
 /** Per-page metadata with sensible inheritance from the site defaults. */
 export function pageMeta(opts: {
@@ -118,45 +118,6 @@ export function faqJsonLd(subset = FAQS) {
       name: f.q,
       acceptedAnswer: { '@type': 'Answer', text: f.a },
     })),
-  };
-}
-
-export function howToJsonLd() {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'HowTo',
-    name: 'How to claim a deceased family member\'s bank accounts and investments in India',
-    description:
-      'The steps to transfer a deceased person\'s bank accounts, shares, mutual funds, '
-      + 'insurance and provident fund to their legal heirs.',
-    totalTime: 'P60D',
-    step: [
-      {
-        '@type': 'HowToStep',
-        name: 'Obtain the death certificate',
-        text: 'Register the death and collect certified copies from the municipal corporation. Every institution needs one.',
-      },
-      {
-        '@type': 'HowToStep',
-        name: 'Establish who the legal heirs are',
-        text: 'Determine the shares under the succession law that applies to your community, and obtain a legal heir certificate where required.',
-      },
-      {
-        '@type': 'HowToStep',
-        name: 'List every holding',
-        text: 'Collect details of each bank account, demat holding, mutual fund folio, insurance policy and provident fund account.',
-      },
-      {
-        '@type': 'HowToStep',
-        name: 'Prepare the documents each institution requires',
-        text: 'Claim forms, affidavits of heirship, indemnity bonds on stamp paper, and no-objection letters from other heirs. Requirements differ by institution and by amount.',
-      },
-      {
-        '@type': 'HowToStep',
-        name: 'File and follow up',
-        text: 'Submit to each institution in parallel and track queries. Anything requiring a succession certificate must go through a civil court first.',
-      },
-    ],
   };
 }
 

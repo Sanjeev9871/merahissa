@@ -1,4 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+// A self-referencing canonical for the site's most important URL. Routed
+// directly (not through pageMeta) so the layout's title.default is kept and the
+// brand is not doubled by the template.
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
 
 /**
  * Landing page.
@@ -35,9 +43,7 @@ export default function Home() {
           each person inherits.
         </p>
         <div className="cta-row">
-          <Link href="/triage">
-            <button className="btn btn-lg" type="button">Find out what my case needs</button>
-          </Link>
+          <Link href="/triage" className="btn btn-lg">Find out what my case needs</Link>
           <span className="cta-note">Free &middot; no account &middot; about two minutes</span>
         </div>
       </section>
@@ -159,11 +165,11 @@ export default function Home() {
         <h2>What we cannot do</h2>
         <p className="sub">Worth reading before you spend anything.</p>
         <ul className="limits">
-          <li><span className="x">&times;</span><span>We are not a law firm and cannot give you legal advice.</span></li>
-          <li><span className="x">&times;</span><span>We cannot appear for you in any court or tribunal. Succession certificates and probate need an advocate &mdash; we prepare everything around them and can introduce you to one.</span></li>
-          <li><span className="x">&times;</span><span>We cannot make an institution accept a claim, and we cannot make one move faster.</span></li>
-          <li><span className="x">&times;</span><span>We cannot notarise anything, or buy your stamp paper for you.</span></li>
-          <li><span className="x">&times;</span><span>We do not compute Muslim intestate shares. That needs school-specific rules a piece of software should not be guessing at, so those cases go to an advocate.</span></li>
+          <li><span className="x" aria-hidden="true">&times;</span><span>We are not a law firm and cannot give you legal advice.</span></li>
+          <li><span className="x" aria-hidden="true">&times;</span><span>We cannot appear for you in any court or tribunal. Succession certificates and probate need an advocate &mdash; we prepare everything around them and can introduce you to one.</span></li>
+          <li><span className="x" aria-hidden="true">&times;</span><span>We cannot make an institution accept a claim, and we cannot make one move faster.</span></li>
+          <li><span className="x" aria-hidden="true">&times;</span><span>We cannot notarise anything, or buy your stamp paper for you.</span></li>
+          <li><span className="x" aria-hidden="true">&times;</span><span>We do not compute Muslim intestate shares. That needs school-specific rules a piece of software should not be guessing at, so those cases go to an advocate.</span></li>
         </ul>
       </section>
 
@@ -186,9 +192,7 @@ export default function Home() {
         <h2>Start with the free check</h2>
         <p className="sub">Six questions. Nothing is sent to us, and nothing is saved.</p>
         <div className="cta-row">
-          <Link href="/triage">
-            <button className="btn btn-lg" type="button">Find out what my case needs</button>
-          </Link>
+          <Link href="/triage" className="btn btn-lg">Find out what my case needs</Link>
           <span className="cta-note">You can stop at any point</span>
         </div>
       </section>

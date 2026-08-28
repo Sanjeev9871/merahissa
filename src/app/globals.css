@@ -8,13 +8,23 @@
  */
 
 :root {
+  /* Tell the UA both palettes exist, so native controls — the date picker
+     glyph, select arrows, plain checkboxes, the caret and scrollbars — render
+     in the dark theme instead of staying light on a dark page. */
+  color-scheme: light dark;
+
   --ground: #faf8f5;
   --surface: #ffffff;
   --surface-2: #f2efe9;
   --ink: #1c1a17;
   --ink-mid: #4f4b44;
-  --ink-soft: #7d7869;
+  /* Secondary text. Darkened from #7d7869 so it clears WCAG AA 4.5:1 on all
+     three surfaces (it failed at ~3.8–4.4:1 before). */
+  --ink-soft: #6d685a;
   --rule: #e2ddd3;
+  /* Resting form-control boundary, ~3:1 on the white field per WCAG 1.4.11.
+     Distinct from --rule, the low-contrast decorative divider. */
+  --field-border: #8a8168;
   --accent: #6b4423;
   --accent-soft: #8f6640;
   --danger: #8c3327;
@@ -30,8 +40,10 @@
     --surface-2: #29261e;
     --ink: #ece8df;
     --ink-mid: #b6b0a2;
-    --ink-soft: #8a8474;
+    /* Lightened from #8a8474 so it clears 4.5:1 on the darkest surface. */
+    --ink-soft: #a49d8b;
     --rule: #37332a;
+    --field-border: #6f6857;
     --accent: #d3a06a;
     --accent-soft: #a87e50;
     --danger: #e0897c;
@@ -74,12 +86,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .masthead {
   display: flex;
   align-items: baseline;
-  gap: 0.75rem;
+  gap: 0.75rem 1.25rem;
+  /* Wrap the nav onto its own line on the narrowest phones rather than letting
+     the row squeeze the wordmark until the brand name breaks across two lines. */
+  flex-wrap: wrap;
   padding-bottom: 1rem;
   margin-bottom: 2rem;
   border-bottom: 1px solid var(--rule);
 }
-.wordmark { font-family: Georgia, serif; font-size: 1.25rem; letter-spacing: 0.02em; }
+.wordmark { font-family: Georgia, serif; font-size: 1.25rem; letter-spacing: 0.02em; white-space: nowrap; }
 .tagline { font-size: 0.8rem; color: var(--ink-soft); font-family: 'Helvetica Neue', Arial, sans-serif; }
 
 .card {
@@ -95,11 +110,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .field .hint { font-size: 0.85rem; color: var(--ink-soft); }
 .field .error { font-size: 0.85rem; color: var(--danger); }
 
-input[type='text'], input[type='date'], input[type='email'], select {
+/* All text-like inputs share this. type='tel'/'number'/'search' were missing,
+   so the contact form's phone field fell back to the 13px UA default and
+   triggered iOS focus-zoom — the 1rem sizing here is exactly what prevents it. */
+input[type='text'], input[type='date'], input[type='email'],
+input[type='tel'], input[type='number'], input[type='search'], select {
   font: inherit;
   font-size: 1rem;
   padding: 0.6rem 0.7rem;
-  border: 1px solid var(--rule);
+  border: 1px solid var(--field-border);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
@@ -109,8 +128,10 @@ input[type='text'], input[type='date'], input[type='email'], select {
 .choice { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .choice label {
   display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.45rem 0.8rem;
-  border: 1px solid var(--rule);
+  /* ~44px tall so the repeatedly-tapped wizard pills clear the touch-target
+     minimum on a phone. */
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--field-border);
   border-radius: 999px;
   background: var(--surface);
   cursor: pointer;
@@ -120,7 +141,7 @@ input[type='text'], input[type='date'], input[type='email'], select {
 .choice label:has(input:checked) { border-color: var(--accent); background: var(--surface-2); }
 .choice input { accent-color: var(--accent); }
 
-button.primary {
+button.primary, a.primary {
   font-family: 'Helvetica Neue', Arial, sans-serif;
   font-size: 1rem;
   padding: 0.7rem 1.4rem;
@@ -131,10 +152,19 @@ button.primary {
   cursor: pointer;
 }
 button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
-button.quiet {
+button.quiet, a.quiet {
   font-family: 'Helvetica Neue', Arial, sans-serif;
-  background: none; border: 1px solid var(--rule); color: var(--ink-mid);
-  padding: 0.6rem 1.1rem; border-radius: var(--radius); cursor: pointer;
+  background: none; border: 1px solid var(--field-border); color: var(--ink-mid);
+  padding: 0.7rem 1.1rem; border-radius: var(--radius); cursor: pointer;
+}
+
+/* The CTAs are Links, not buttons wrapped in a Link (which is invalid HTML and
+   a double tab stop). An anchor with a button class renders as the button. */
+a.primary, a.quiet, a.btn {
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+  line-height: 1.4;
 }
 
 .notice {
@@ -215,13 +245,13 @@ button.quiet {
    Alias them so one button style serves both rather than drifting apart. */
 h3 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.94rem; margin: 0; font-weight: 600; }
 
-button.btn {
+button.btn, a.btn {
   font-family: 'Helvetica Neue', Arial, sans-serif;
   border: none; border-radius: var(--radius);
   background: var(--accent); color: var(--ground);
   padding: 0.7rem 1.4rem; font-size: 1rem; cursor: pointer;
 }
-button.btn.btn-lg { padding: 0.8rem 1.6rem; }
+button.btn.btn-lg, a.btn.btn-lg { padding: 0.8rem 1.6rem; }
 
 /* =========================================================================
    Site chrome, FAQ and guides.
@@ -238,8 +268,9 @@ button.btn.btn-lg { padding: 0.8rem 1.6rem; }
 .wordmark-link { text-decoration: none; color: inherit; }
 .wordmark .dot { color: var(--accent); }
 
-.nav-links { display: flex; gap: 1.1rem; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.9rem; }
-.nav-links a { color: var(--ink-mid); text-decoration: none; }
+.nav-links { display: flex; gap: 0.4rem 1.1rem; flex-wrap: wrap; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.9rem; }
+/* Vertical padding lifts these primary nav links to a ~44px touch target. */
+.nav-links a { color: var(--ink-mid); text-decoration: none; display: inline-block; padding: 0.55rem 0; }
 .nav-links a:hover { color: var(--accent); text-decoration: underline; }
 
 .crumbs {
@@ -291,7 +322,7 @@ button.btn.btn-lg { padding: 0.8rem 1.6rem; }
 
 textarea {
   font: inherit; font-size: 1rem; padding: 0.6rem 0.7rem;
-  border: 1px solid var(--rule); border-radius: var(--radius);
+  border: 1px solid var(--field-border); border-radius: var(--radius);
   background: var(--surface); color: var(--ink); width: 100%; resize: vertical;
 }
 
@@ -308,3 +339,38 @@ textarea {
 
 .error { color: var(--danger); font-size: 0.88rem; }
 .sub { color: var(--ink-mid); max-width: 60ch; }
+
+/* =========================================================================
+   Small shared utilities.
+   ========================================================================= */
+
+/* Paired fields (phone + email on the contact form). Referenced by LeadForm
+   but never defined, so the pair always stacked; now it is a real two-up row
+   that collapses to one column when there is no space. */
+.row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.row > .field { flex: 1 1 12rem; }
+
+/* Consent checkbox rows: the label hangs the wrapped text to the right of the
+   checkbox instead of running back underneath it. The `.field label.check`
+   selector out-specifies `.field label { font-weight: 500 }` so the consent
+   text stays normal weight. */
+.field label.check, .check {
+  display: flex; align-items: flex-start; gap: 0.6rem;
+  font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 400;
+}
+
+/* A whole card that is one link (the case list). Keeps the card look without a
+   nested button and without underlining the entire card. */
+a.card.as-card-link { display: block; text-decoration: none; color: inherit; }
+a.card.as-card-link:hover { border-color: var(--accent); }
+
+/* Available to assistive tech, removed from the visual layout. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
