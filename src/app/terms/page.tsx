@@ -73,6 +73,11 @@ export default function Terms() {
         percentage of what you recover. If, after you pay, we find we cannot help with
         your matter, we refund the fee.
       </p>
+      <p>
+        This is a <strong>one-time fee per case. There is no subscription, and nothing
+        auto-renews or recharges your card.</strong> If you ever return for another
+        matter, you pay for that matter, once, at the price shown before you commit.
+      </p>
 
       <h2>5. No guarantee of outcome</h2>
       <p>
