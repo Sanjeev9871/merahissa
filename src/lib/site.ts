@@ -16,5 +16,16 @@ export const SITE = {
     + 'member\'s money, and what each heir inherits. Free check, no account needed.',
   locale: 'en_IN',
   email: 'hello@merahissa.in',
-  phone: '+91-00000-00000',
+  phone: '+91 98101 91376',
+  // Tel-safe form (no spaces) for the href, so the display string can stay
+  // human-readable.
+  phoneHref: '+919810191376',
+  address: {
+    street: 'J010, Tower B, Ground Floor',
+    locality: 'Jasola',
+    region: 'New Delhi',
+    postalCode: '110065',
+    country: 'India',
+    countryCode: 'IN',
+  },
 } as const;

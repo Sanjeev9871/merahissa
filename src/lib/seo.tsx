@@ -82,10 +82,19 @@ export function organizationJsonLd() {
     areaServed: { '@type': 'Country', name: 'India' },
     serviceType: 'Estate transmission document preparation',
     knowsLanguage: ['en-IN', 'hi-IN'],
+    telephone: SITE.phoneHref,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: `${SITE.address.street}, ${SITE.address.locality}`,
+      addressLocality: SITE.address.region,
+      postalCode: SITE.address.postalCode,
+      addressCountry: SITE.address.countryCode,
+    },
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'customer support',
       email: SITE.email,
+      telephone: SITE.phoneHref,
       availableLanguage: ['English', 'Hindi'],
     },
     // Stated plainly in the markup as well as on the page.
