@@ -15,6 +15,6 @@ export const SITE = {
     'Find out which documents each bank, fund and insurer needs to release a family '
     + 'member\'s money, and what each heir inherits. Free check, no account needed.',
   locale: 'en_IN',
-  email: 'hello@merahissa.in',
-  phone: '+91-00000-00000',
+  email: 'info@merahissa.in',
+  phone: '+91-98101-91376',
 } as const;
