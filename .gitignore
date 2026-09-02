@@ -18,3 +18,7 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 coverage/
+
+# Supabase local development
+supabase/.branches/
+supabase/.temp/
