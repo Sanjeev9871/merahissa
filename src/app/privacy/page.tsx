@@ -22,12 +22,21 @@ export default function Privacy() {
   return (
     <>
       <h1>What we do with your information</h1>
-      <p className="hint">Version 2026-08-22</p>
+      <p className="hint">Version 2026-08-31</p>
 
       <p>
-        You are giving us a death certificate and details of a family member&rsquo;s
-        money. We have tried to design this so that as little of it exists, in as few
-        places, for as short a time, as the job allows.
+        To prepare your claim documents, <strong>Mera Hissa collects and processes
+        personal data about you, the person who has died, and the other legal heirs</strong>
+        &mdash; including a death certificate and details of a family member&rsquo;s
+        money. This notice explains what we collect, why, who processes it on our behalf,
+        and how you can have it deleted. We have tried to design the service so that as
+        little of it exists, in as few places, for as short a time, as the job allows.
+      </p>
+      <p>
+        Mera Hissa is the data fiduciary for this information under the Digital Personal
+        Data Protection Act 2023. We process it only to prepare and review your documents
+        and to contact you about your case &mdash; never to advertise to you, and never
+        for any purpose you have not agreed to.
       </p>
 
       <h2>What we collect, and why</h2>
@@ -67,12 +76,14 @@ export default function Privacy() {
 
       <h2>How we use AI, and what it never sees</h2>
       <p>
-        We use an AI model to draft covering letters and affidavit wording. Before
-        anything is sent to it, every name, account reference and institution is
-        replaced with a placeholder such as <code>&#123;&#123;HEIR_1&#125;&#125;</code>.
-        The model receives the <em>shape</em> of your case &mdash; which law applies, what
-        kinds of asset there are &mdash; and never a single real name. Real values are put
-        back on our own servers afterwards.
+        We use an AI model to draft covering letters and affidavit wording. The model is
+        run by a <strong>third-party inference provider</strong> (currently Groq or
+        OpenRouter, depending on availability), so the tokenised prompt described below
+        leaves our servers and is processed by them. Before anything is sent, every name,
+        account reference and institution is replaced with a placeholder such as{' '}
+        <code>&#123;&#123;HEIR_1&#125;&#125;</code>. The model receives the <em>shape</em>{' '}
+        of your case &mdash; which law applies, what kinds of asset there are &mdash; and
+        never a single real name. Real values are put back on our own servers afterwards.
       </p>
       <p>
         PAN and Aadhaar are not even placeheld. They are simply never included.
@@ -99,15 +110,24 @@ export default function Privacy() {
         a document was downloaded. That log holds no names and no case contents.
       </p>
 
-      <h2>Who else sees it</h2>
+      <h2>Who else processes it</h2>
+      <p>
+        We use a small number of third-party service providers, who process your data
+        only on our instructions and only to run this service:
+      </p>
       <ul>
         <li>The Mera Hissa reviewer who checks your pack before it reaches you.</li>
-        <li>Supabase, who host the database and file storage.</li>
-        <li>The AI provider &mdash; placeholders only, as described above.</li>
-        <li>Razorpay, for payment. We never see or store your card or UPI details.</li>
+        <li><strong>Supabase</strong> &mdash; hosts the database, the file storage, and sends your sign-in link by email.</li>
+        <li><strong>Vercel</strong> &mdash; hosts and serves the website itself.</li>
+        <li><strong>Groq / OpenRouter</strong> &mdash; the AI inference provider, which receives placeholder tokens only, as described above.</li>
+        <li><strong>Razorpay</strong> &mdash; for payment. We never see or store your card or UPI details.</li>
         <li>An advocate, only if you ask us to introduce you, and only what you agree to share.</li>
       </ul>
-      <p>We do not sell anything to anyone, and there are no advertising trackers on this site.</p>
+      <p>
+        Some of these providers may process data on servers outside India. We do not sell
+        your data to anyone, we do not share it for anyone else&rsquo;s advertising, and
+        there are no advertising or analytics trackers on this site.
+      </p>
 
       <h2>Your rights</h2>
       <p>
