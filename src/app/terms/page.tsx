@@ -22,16 +22,7 @@ export default function Terms() {
   return (
     <>
       <h1>Terms of service</h1>
-      <p className="hint">Version 2026-08-31 &middot; draft</p>
-
-      <div className="notice warn" role="note">
-        <strong>This is a working draft.</strong>
-        <p style={{ margin: '0.5rem 0 0' }}>
-          These terms restate what we already promise elsewhere on the site, but they
-          have not yet been reviewed by a lawyer. Do not treat them as final. If you are
-          relying on them, write to <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
-        </p>
-      </div>
+      <p className="hint">Version 2026-08-31</p>
 
       <h2>1. Who we are</h2>
       <p>
