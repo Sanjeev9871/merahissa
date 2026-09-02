@@ -2,7 +2,7 @@
   "name": "merahissa",
   "version": "0.1.0",
   "private": true,
-  "description": "Estate claim copilot for India \u2014 guided intake to filed claim pack.",
+  "description": "Estate claim copilot for India — guided intake to filed claim pack.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,6 +15,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.45.4",
+    "@vercel/analytics": "^2.0.1",
     "next": "^15.0.3",
     "pdf-lib": "^1.17.1",
     "posthog-js": "^1.424.1",
