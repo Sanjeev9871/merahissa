@@ -118,7 +118,12 @@ export default function Privacy() {
       <ul>
         <li>The Mera Hissa reviewer who checks your pack before it reaches you.</li>
         <li><strong>Supabase</strong> &mdash; hosts the database, the file storage, and sends your sign-in link by email.</li>
-        <li><strong>Vercel</strong> &mdash; hosts and serves the website itself.</li>
+        <li>
+          <strong>Vercel</strong> &mdash; hosts and serves the website, and counts page
+          views for us. That counting is <strong>cookieless and aggregate</strong>: it sets
+          no cookie, stores no IP address, and cannot identify you or follow you to
+          other sites. It tells us that a guide was read, not who read it.
+        </li>
         <li><strong>Groq / OpenRouter</strong> &mdash; the AI inference provider, which receives placeholder tokens only, as described above.</li>
         <li><strong>Razorpay</strong> &mdash; for payment. We never see or store your card or UPI details.</li>
         <li>An advocate, only if you ask us to introduce you, and only what you agree to share.</li>
@@ -126,7 +131,8 @@ export default function Privacy() {
       <p>
         Some of these providers may process data on servers outside India. We do not sell
         your data to anyone, we do not share it for anyone else&rsquo;s advertising, and
-        there are no advertising or analytics trackers on this site.
+        there are no advertising trackers on this site. The only measurement is the
+        cookieless page-view count described above.
       </p>
 
       <h2>Your rights</h2>

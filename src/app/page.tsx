@@ -108,7 +108,9 @@ export default function Home() {
         <h2>How it works</h2>
         <p className="sub">
           Five steps. We have marked the one that is genuinely slow, because everyone
-          else hides it.
+          else hides it. Prefer to see it rather than read it?{' '}
+          <Link href="/examples">Three worked examples</Link> show what a case looks like,
+          start to finish.
         </p>
 
         <ol className="flow">
