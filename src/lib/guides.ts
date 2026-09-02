@@ -259,6 +259,56 @@ export const GUIDES: readonly Guide[] = [
     ],
     related: ['succession-certificate-india', 'claim-bank-account-after-death'],
   },
+  {
+    slug: 'claim-inheritance-when-sister-dies',
+    title: 'Claiming a sister\'s inheritance after her death in India',
+    description:
+      'Who inherits when a woman dies without a will in India, why a brother or sister is often not first in line, and the one rule that decides most sibling claims.',
+    h1: 'My sister passed away. How do I claim her inheritance?',
+    updated: '2026-08-31',
+    answer:
+      'It depends on whether she was married and had children, because for a woman who dies without a will the law sets a fixed order. '
+      + 'Her children and husband come first; if there are none, her parents; only if there are no parents either do her brothers and sisters inherit. '
+      + 'There is one important exception: property she had inherited from her own parents goes back to their side of the family if she leaves no children — '
+      + 'and that is the route by which a sibling most often does have a claim.',
+    sections: [
+      {
+        heading: 'The order the law sets for a woman who dies without a will',
+        body: [
+          'Section 15(1) of the Hindu Succession Act 1956 lists who inherits from a Hindu woman, in a strict order. First, her sons and daughters and her husband, who take equally. If there are none of those, her husband\'s heirs. If none of those, her mother and father. Only if there are no parents either does the estate pass to her father\'s heirs — which is where her brothers and sisters come in — and after that to her mother\'s heirs.',
+          'So if your sister left children or a husband, they inherit and you do not. If she was unmarried and either of your parents is alive, your parents inherit, and you would act on their behalf rather than in your own name. Getting this wrong is the commonest reason a sibling\'s claim is rejected outright.',
+        ],
+      },
+      {
+        heading: 'The rule that decides most sibling claims',
+        body: [
+          'Section 15(2) reverses the order for property a woman inherited rather than earned. Anything she inherited from her mother or father goes back to her father\'s heirs if she leaves no son or daughter — regardless of a surviving husband. Anything she inherited from her husband or father-in-law goes back to her husband\'s heirs.',
+          'In practice this is how a brother or sister most often ends up entitled: a share of the family home, or money that came to her from your parents, returns to your side of the family if she had no children. But it depends on where each asset came from, which is a question of fact rather than a formula. Expect to have to show it, and expect it to need an advocate if anyone disputes it.',
+        ],
+      },
+      {
+        heading: 'If she was married',
+        body: [
+          'Her husband and any children take everything under section 15(1)(a), in equal shares, with the section 15(2) exception above for property she had inherited from your parents. If her husband has also died, the estate passes to his heirs before it comes to yours — a result many families find surprising, and one worth knowing before a difficult conversation.',
+        ],
+      },
+      {
+        heading: 'What you will actually need to file',
+        body: [
+          'Whoever the rightful heirs turn out to be, the institutions holding her money will want the death certificate, the claimant\'s PAN and address proof, and something establishing who the heirs are — usually a legal heir certificate from the tahsildar, backed by an affidavit listing every surviving relative and no-objection letters from the heirs who are not claiming.',
+          'For a bank account or fixed deposit above the bank\'s internal limit with no nominee, the bank will insist on a succession certificate from a civil court instead, which needs an advocate and takes six months or more. Ask each institution in writing what it will accept before you start a court application you may not need.',
+        ],
+      },
+      {
+        heading: 'If there is a will, or she was not Hindu',
+        body: [
+          'A valid will overrides all of the above; the estate goes as the will says, and the documents are different. If your sister was Christian, the Indian Succession Act 1925 applies instead and the order of heirs is different again. If she was Muslim, the shares follow the school-specific rules of Muslim personal law, which we do not automate — those cases go to an advocate.',
+          'The free check applies the right law to your family in about two minutes, tells you who the claimants actually are, and says plainly if any part of it needs a lawyer.',
+        ],
+      },
+    ],
+    related: ['hindu-succession-shares', 'legal-heir-certificate', 'succession-certificate-india'],
+  },
 ] as const;
 
 export function guideBySlug(slug: string): Guide | undefined {

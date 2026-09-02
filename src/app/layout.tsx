@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { SITE, organizationJsonLd, websiteJsonLd, JsonLd } from '@/lib/seo';
 
@@ -115,6 +116,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </p>
           </footer>
         </div>
+
+        {/* Cookieless, aggregate page-view counting only. Sets no cookies, stores
+            no IP, and identifies no individual — so it needs no consent banner
+            and is disclosed as such in the privacy notice. */}
+        <Analytics />
       </body>
     </html>
   );

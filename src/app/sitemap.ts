@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // The guides index: indexable, in the main nav, and the hub linking every
     // guide — it was the one public indexable page missing from the sitemap.
     { url: `${SITE.url}/guides`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${SITE.url}/examples`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE.url}/faq`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE.url}/contact`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
     { url: `${SITE.url}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
