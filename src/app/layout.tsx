@@ -96,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <li><Link href="/contact">Ask us a question</Link></li>
                   <li><Link href="/privacy">Privacy</Link></li>
                   <li><Link href="/terms">Terms</Link></li>
+                  <li><Link href="/refund">Refund &amp; cancellation</Link></li>
                 </ul>
               </div>
             </div>
