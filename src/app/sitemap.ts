@@ -20,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE.url}/contact`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
     { url: `${SITE.url}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${SITE.url}/terms`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE.url}/refund`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     ...GUIDES.map((g) => ({
       url: `${SITE.url}/guides/${g.slug}`,
       lastModified: new Date(g.updated),
