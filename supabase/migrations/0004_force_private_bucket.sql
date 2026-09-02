@@ -1,0 +1,15 @@
+-- ===========================================================================
+-- 0004 — force the document bucket private
+--
+-- 0003 provisions the bucket with `insert ... on conflict (id) do nothing`,
+-- which is correct for a fresh environment but leaves an ALREADY-EXISTING
+-- bucket at whatever visibility it was first created with. A bucket created
+-- public by hand in the Supabase dashboard (the default when you click "New
+-- bucket" without unticking "Public") would therefore stay public even after
+-- 0003 runs — directly contradicting the privacy notice, which tells families
+-- their uploaded death certificates "sit in a private bucket".
+--
+-- This forces it private unconditionally. It is idempotent and safe to run on
+-- a bucket that is already private.
+-- ===========================================================================
+update storage.buckets set public = false where id = 'case-documents';
