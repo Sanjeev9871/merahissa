@@ -92,9 +92,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <h3>Reach us</h3>
                 <ul>
                   <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
-                  <li><a href={`tel:${SITE.phone}`}>{SITE.phone}</a></li>
+                  <li><a href={`tel:${SITE.phoneHref}`}>{SITE.phone}</a></li>
                   <li><Link href="/contact">Ask us a question</Link></li>
                   <li><Link href="/privacy">Privacy</Link></li>
+                  <li><Link href="/terms">Terms</Link></li>
                 </ul>
               </div>
             </div>
