@@ -28,5 +28,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly' as const,
       priority: 0.8,
     })),
+
+    // Hindi. Listed so the translated pages are discovered directly rather than
+    // only through the hreflang alternates on their English counterparts.
+    { url: `${SITE.url}/hi`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${SITE.url}/hi/triage`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE.url}/hi/guides`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE.url}/hi/faq`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${SITE.url}/hi/examples`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE.url}/hi/contact`, lastModified: now, changeFrequency: 'yearly', priority: 0.5 },
+    { url: `${SITE.url}/hi/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE.url}/hi/terms`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    { url: `${SITE.url}/hi/refund`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
+    ...GUIDES.map((g) => ({
+      url: `${SITE.url}/hi/guides/${g.slug}`,
+      lastModified: new Date(g.updated),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
   ];
 }
