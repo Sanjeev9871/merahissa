@@ -163,6 +163,9 @@ describe('row-level security is not bypassed casually', () => {
     const ALLOWED = [
       'lib/supabase/server.ts', 'lib/audit.ts',
       'api/payments/webhook/route.ts', 'api/payments/order/route.ts',
+      // verify: records a signature-verified payment, which the family's own
+      // client is not permitted to write (payments_admin_write).
+      'api/payments/verify/route.ts',
       'api/cron/purge/route.ts', 'api/uploads/route.ts',
       'api/cases/[id]/route.ts', 'api/cases/[id]/generate/route.ts',
       'api/admin/packs/[id]/route.ts', 'api/packs/[id]/download/route.ts',
