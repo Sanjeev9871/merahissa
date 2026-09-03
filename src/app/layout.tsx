@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { SITE, organizationJsonLd, websiteJsonLd, JsonLd } from '@/lib/seo';
+import { UI, HTML_LANG, localeFromPath, localePath, pathForLocale } from '@/lib/i18n';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +22,7 @@ export const metadata: Metadata = {
     'succession certificate', 'legal heir certificate', 'claim bank account after death',
     'transmission of shares', 'IEPF claim', 'nominee vs legal heir',
     'Hindu Succession Act shares', 'death claim documents India',
+    'उत्तराधिकार प्रमाण पत्र', 'विधिक वारिस प्रमाण पत्र', 'मृत्यु के बाद बैंक खाता दावा',
   ],
   authors: [{ name: SITE.name }],
   creator: SITE.name,
@@ -41,24 +45,38 @@ export const viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Middleware puts the path here; a layout cannot otherwise see it.
+  const pathname = (await headers()).get('x-pathname') ?? '/';
+  const locale = localeFromPath(pathname);
+  const t = UI[locale];
+  const L = (path: string) => localePath(locale, path);
+
   return (
-    <html lang="en-IN">
+    <html lang={HTML_LANG[locale]}>
+      <head>
+        {/* Tells Google these are the same page in two languages rather than
+            duplicates, and which to serve to whom. */}
+        <link rel="alternate" hrefLang="en-IN" href={`${SITE.url}${pathForLocale(pathname, 'en')}`} />
+        <link rel="alternate" hrefLang="hi-IN" href={`${SITE.url}${pathForLocale(pathname, 'hi')}`} />
+        <link rel="alternate" hrefLang="x-default" href={`${SITE.url}${pathForLocale(pathname, 'en')}`} />
+      </head>
       <body>
         {/* Site-wide structured data. Page-level schema is added per page. */}
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
-        <a href="#main" className="skip">Skip to content</a>
+        <a href="#main" className="skip">{t.skipToContent}</a>
 
         <div className="shell">
           <header className="masthead">
-            <Link href="/" className="wordmark-link">
+            <Link href={L('/')} className="wordmark-link">
               <span className="wordmark">Mera Hissa<span className="dot">.</span></span>
             </Link>
-            <nav className="nav-links" aria-label="Main">
-              <Link href="/guides">Guides</Link>
-              <Link href="/faq">Questions</Link>
-              <Link href="/contact">Contact</Link>
+            <nav className="nav-links" aria-label={locale === 'hi' ? 'मुख्य' : 'Main'}>
+              <Link href={L('/guides')}>{t.nav.guides}</Link>
+              <Link href={L('/faq')}>{t.nav.questions}</Link>
+              <Link href={L('/contact')}>{t.nav.contact}</Link>
+              <LanguageSwitcher locale={locale} pathname={pathname} />
             </nav>
           </header>
 
@@ -70,56 +88,49 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <footer className="site-footer">
             {/* Owns the footer's column headings so a heading-only page (e.g.
                 /signin) does not skip from its h1 straight to the footer h3s. */}
-            <h2 className="visually-hidden">About Mera Hissa</h2>
+            <h2 className="visually-hidden">{t.footer.aboutHeading}</h2>
             <div className="foot-cols">
               <div>
                 <h3>Mera Hissa</h3>
-                <p>
-                  We prepare the paperwork for transferring a deceased family member&rsquo;s
-                  bank accounts, shares, mutual funds, insurance and provident fund to their
-                  legal heirs.
-                </p>
+                <p>{t.footer.blurb}</p>
               </div>
               <div>
-                <h3>Read first</h3>
+                <h3>{t.footer.readFirst}</h3>
                 <ul>
-                  <li><Link href="/guides/claim-bank-account-after-death">Claiming a bank account</Link></li>
-                  <li><Link href="/guides/succession-certificate-india">Succession certificates</Link></li>
-                  <li><Link href="/guides/nominee-vs-legal-heir">Nominee vs legal heir</Link></li>
-                  <li><Link href="/faq">All questions</Link></li>
+                  <li><Link href={L('/guides/claim-bank-account-after-death')}>
+                    {locale === 'hi' ? 'बैंक खाते पर दावा' : 'Claiming a bank account'}
+                  </Link></li>
+                  <li><Link href={L('/guides/succession-certificate-india')}>
+                    {locale === 'hi' ? 'उत्तराधिकार प्रमाण पत्र' : 'Succession certificates'}
+                  </Link></li>
+                  <li><Link href={L('/guides/nominee-vs-legal-heir')}>
+                    {locale === 'hi' ? 'नॉमिनी बनाम कानूनी वारिस' : 'Nominee vs legal heir'}
+                  </Link></li>
+                  <li><Link href={L('/faq')}>{t.footer.allQuestions}</Link></li>
                 </ul>
               </div>
               <div>
-                <h3>Reach us</h3>
+                <h3>{t.footer.reachUs}</h3>
                 <ul>
                   <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
                   <li><a href={`tel:${SITE.phoneHref}`}>{SITE.phone}</a></li>
-                  <li><Link href="/contact">Ask us a question</Link></li>
-                  <li><Link href="/privacy">Privacy</Link></li>
-                  <li><Link href="/terms">Terms</Link></li>
-                  <li><Link href="/refund">Refund &amp; cancellation</Link></li>
+                  <li><Link href={L('/contact')}>{t.footer.askQuestion}</Link></li>
+                  <li><Link href={L('/privacy')}>{t.footer.privacy}</Link></li>
+                  <li><Link href={L('/terms')}>{t.footer.terms}</Link></li>
+                  <li><Link href={L('/refund')}>{t.footer.refund}</Link></li>
                 </ul>
               </div>
             </div>
 
-            <p className="disclaimer">
-              Mera Hissa prepares documents and explains the steps involved in claiming assets
-              left by a family member. We are not a law firm and this is not legal advice.
-              We do not represent anyone before a court or tribunal. Where a case needs a
-              succession certificate, probate, or letters of administration, we refer you
-              to an advocate.
-            </p>
-            <p className="disclaimer">
-              Your documents are stored encrypted, are never used to train any AI system,
-              and are deleted 90 days after your case closes. You can ask us to delete
-              everything at any time.
-            </p>
+            <p className="disclaimer">{t.footer.disclaimer}</p>
+            <p className="disclaimer">{t.footer.dataNote}</p>
           </footer>
         </div>
 
         {/* Cookieless, aggregate page-view counting only. Sets no cookies, stores
-            no IP, and identifies no individual — so it needs no consent banner
-            and is disclosed as such in the privacy notice. */}
+            no IP, and identifies no individual. Note that PostHog (loaded via
+            instrumentation-client.ts) is a separate, cookie-setting product
+            analytics tool — both are disclosed in the privacy notice. */}
         <Analytics />
       </body>
     </html>
