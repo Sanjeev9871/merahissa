@@ -236,21 +236,43 @@ describe('published promises hold', () => {
   const flat = (rel: string) =>
     files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
 
-  it('shows the disclaimer on every page via the root layout', () => {
-    expect(flat('app/layout.tsx')).toContain('not a law firm');
-    expect(flat('app/layout.tsx')).toContain('not legal advice');
+  // The chrome disclaimer moved into the i18n dictionary when the site became
+  // bilingual, so that is where these promises now live. It is checked in BOTH
+  // languages: a promise kept only in English is not kept for the Hindi reader.
+  it('shows the disclaimer on every page, in both languages', () => {
+    const ui = flat('lib/i18n.ts');
+    expect(ui).toContain('not a law firm');
+    expect(ui).toContain('not legal advice');
+    // Hindi: "we are not a law firm" / "this is not legal advice".
+    expect(ui).toContain('लॉ फर्म नहीं');
+    expect(ui).toContain('कानूनी सलाह नहीं');
   });
 
   it('keeps the 90-day retention figure consistent across code and copy', () => {
     // A promise made in the privacy notice that the code does not keep is
     // worse than no promise. These must move together.
     expect(flat('lib/uploads.ts')).toContain('RETENTION_DAYS = 90');
-    expect(flat('app/layout.tsx')).toContain('90 days');
+    expect(flat('lib/i18n.ts')).toContain('90 days');
+    expect(flat('lib/i18n.ts')).toContain('90 दिन');
     expect(flat('app/privacy/page.tsx')).toContain('90 days');
+    expect(flat('app/hi/privacy/page.tsx')).toContain('90 दिन');
   });
 
-  it('states in the privacy notice that data is not used for training', () => {
-    expect(flat('privacy/page.tsx')).toContain('not used to train');
+  it('states in both privacy notices that data is not used for training', () => {
+    expect(flat('app/privacy/page.tsx')).toContain('not used to train');
+    expect(flat('app/hi/privacy/page.tsx')).toContain('प्रशिक्षित करने के लिए नहीं');
+  });
+
+  // PostHog sets a cookie and sends data to the US. Saying "cookieless" while
+  // shipping it is the kind of false privacy claim that carries real legal
+  // risk, so both notices must name it explicitly.
+  it('discloses the cookie-setting analytics in both privacy notices', () => {
+    const en = flat('app/privacy/page.tsx');
+    expect(en).toContain('PostHog');
+    expect(en).toContain('sets a cookie');
+    const hi = flat('app/hi/privacy/page.tsx');
+    expect(hi).toContain('PostHog');
+    expect(hi).toContain('कुकी');
   });
 });
 

@@ -124,6 +124,14 @@ export default function Privacy() {
           no cookie, stores no IP address, and cannot identify you or follow you to
           other sites. It tells us that a guide was read, not who read it.
         </li>
+        <li>
+          <strong>PostHog</strong> &mdash; product analytics, which shows us which parts of
+          the site people actually find useful. Unlike the page-view count above,{' '}
+          <strong>PostHog sets a cookie in your browser</strong> so a returning visitor can
+          be recognised, and processes that data on servers in the United States. It
+          records how the site is used &mdash; pages visited and buttons pressed &mdash;
+          not the contents of your case.
+        </li>
         <li><strong>Groq / OpenRouter</strong> &mdash; the AI inference provider, which receives placeholder tokens only, as described above.</li>
         <li><strong>Razorpay</strong> &mdash; for payment. We never see or store your card or UPI details.</li>
         <li>An advocate, only if you ask us to introduce you, and only what you agree to share.</li>
@@ -131,8 +139,8 @@ export default function Privacy() {
       <p>
         Some of these providers may process data on servers outside India. We do not sell
         your data to anyone, we do not share it for anyone else&rsquo;s advertising, and
-        there are no advertising trackers on this site. The only measurement is the
-        cookieless page-view count described above.
+        there are no advertising trackers on this site &mdash; the measurement described
+        above is used only to improve the service.
       </p>
 
       <h2>Your rights</h2>
