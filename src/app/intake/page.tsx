@@ -42,7 +42,7 @@ interface HeirRow {
   key: string; fullName: string; relationship: string; isMinor: boolean; isClaimant: boolean;
 }
 interface AssetRow {
-  key: string; kind: string; institution: string; accountLast4: string;
+  key: string; kind: string; institution: string; accountRef: string;
   valueBand: string; hasNomination: string; isJoint: boolean;
 }
 
@@ -59,7 +59,7 @@ const newHeir = (): HeirRow => ({
 });
 const newAsset = (): AssetRow => ({
   key: uid(), kind: 'bank_deposit', institution: '',
-  accountLast4: '', valueBand: 'unknown', hasNomination: 'unsure', isJoint: false,
+  accountRef: '', valueBand: 'unknown', hasNomination: 'unsure', isJoint: false,
 });
 
 /** Which wizard step owns the first field in a set of server error keys. */
@@ -110,9 +110,9 @@ export default function Intake() {
           deceasedWasFemale: wasFemale,
           regime, hasWill, willIsRegistered: null,
           heirs: heirs.map(({ key: _key, ...h }) => h),
-          assets: assets.map(({ key: _key, accountLast4, hasNomination, ...a }) => ({
+          assets: assets.map(({ key: _key, accountRef, hasNomination, ...a }) => ({
             ...a,
-            accountLast4: accountLast4 || undefined,
+            accountRef: accountRef.trim() || undefined,
             hasNomination: hasNomination === 'unsure' ? null : hasNomination === 'yes',
           })),
         }),
@@ -284,8 +284,9 @@ export default function Intake() {
           <>
             <h2>What they held</h2>
             <p className="hint" style={{ marginBottom: '1.25rem' }}>
-              One entry per account or holding. We only ever ask for the last four
-              digits &mdash; the institution already knows the full number.
+              One entry per account or holding. The account number goes on the claim
+              form, so we need it in full &mdash; it is stored encrypted, shown back to
+              you masked, never sent to any AI system, and deleted with your case.
             </p>
 
             {assets.map((a, i) => (
@@ -315,13 +316,23 @@ export default function Intake() {
                 </div>
 
                 <div className="field">
-                  <label htmlFor={`al-${a.key}`}>Last four digits (optional)</label>
-                  <input id={`al-${a.key}`} type="text" inputMode="numeric"
-                    maxLength={4} value={a.accountLast4} style={{ maxWidth: '8rem' }}
+                  <label htmlFor={`al-${a.key}`}>Account, folio or policy number</label>
+                  <input id={`al-${a.key}`} type="text" inputMode="text"
+                    autoComplete="off" spellCheck={false}
+                    maxLength={32} value={a.accountRef} style={{ maxWidth: '20rem' }}
+                    aria-invalid={Boolean(errors[`assets.${i}.accountRef`])}
+                    aria-describedby={`al-${a.key}-hint${errors[`assets.${i}.accountRef`] ? ` al-${a.key}-error` : ''}`}
                     onChange={(e) => setAssets(assets.map((x) =>
                       x.key === a.key
-                        ? { ...x, accountLast4: e.target.value.replace(/\D/g, '') }
+                        ? { ...x, accountRef: e.target.value.replace(/[^A-Za-z0-9/-]/g, '') }
                         : x))} />
+                  <span className="hint" id={`al-${a.key}-hint`}>
+                    In full, as printed on the statement or policy &mdash; the claim form
+                    needs it. Stored encrypted and shown back to you masked.
+                  </span>
+                  {errors[`assets.${i}.accountRef`] && (
+                    <span className="error" id={`al-${a.key}-error`}>{errors[`assets.${i}.accountRef`]}</span>
+                  )}
                 </div>
 
                 <div className="field">
@@ -388,7 +399,7 @@ export default function Intake() {
               {assets.map((a) => (
                 <li key={a.key}>
                   {ASSET_LABELS[a.kind]} at {a.institution || '(not named)'}
-                  {a.accountLast4 && ` ending ${a.accountLast4}`}
+                  {a.accountRef && ` ending ${a.accountRef.slice(-4)}`}
                   {' — '}{BAND_LABELS[a.valueBand]}
                 </li>
               ))}

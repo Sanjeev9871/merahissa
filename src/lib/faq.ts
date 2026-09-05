@@ -148,7 +148,7 @@ export const FAQS: readonly Faq[] = [
     topic: 'trust',
     q: 'Is it safe to give you a death certificate and account details?',
     a: 'Your scans are read in your own browser and never leave your device during that step. When our software drafts your letters, the AI receives placeholders — never a name, an account number, a PAN or an Aadhaar. '
-     + 'We only ever ask for the last four digits of an account, because the institution already knows the rest. Documents are encrypted, deleted 90 days after your case closes, and you can erase everything yourself at any time. '
+     + 'Account numbers are asked for in full, because the claim forms we prepare have to carry them, and they are encrypted with a key held outside the database and shown back to you masked. Documents are encrypted, deleted 90 days after your case closes, and you can erase everything yourself at any time. '
      + 'Your information is never used to train any AI system and is never sold.',
   },
   {

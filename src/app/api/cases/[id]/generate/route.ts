@@ -10,6 +10,7 @@ import {
   assertDisclaimerPresent,
 } from '@/lib/pdf/document';
 import { renderPack } from '@/lib/pdf/render';
+import { decryptPii } from '@/lib/crypto';
 import {
   rateLimit,
   rateLimitHeaders,
@@ -28,6 +29,21 @@ type Params = {
 type ExistingPack = {
   version: number;
 };
+
+/**
+ * Decrypts a stored account reference, returning null rather than throwing if
+ * the key is absent or the ciphertext no longer decrypts. Generation must
+ * degrade to the masked reference, not fail outright.
+ */
+function decryptRef(ciphertext: string | null): string | null {
+  if (!ciphertext) return null;
+  try {
+    return decryptPii(ciphertext);
+  } catch (e) {
+    console.error('[generate] could not decrypt account reference; using mask', e);
+    return null;
+  }
+}
 
 /**
  * Generate a pack.
@@ -169,8 +185,19 @@ export async function POST(
       id: a.id as string,
       kind: a.kind as AssetKind,
       institution: a.institution as string,
+      // The full reference, decrypted here and held only for the life of this
+      // request. It is what an institution's claim form has to carry. It never
+      // reaches the model: redactCase() swaps it for an {{ACCOUNT_n}} token
+      // before the prompt is built, and assertNoPii() fails the request closed
+      // if a raw account-shaped digit run ever survives into the payload.
+      //
+      // Falls back to the mask when the ciphertext is missing or undecryptable
+      // (a case created before this column was populated, or a rotated key), so
+      // an old case still generates rather than erroring.
       accountRef:
-        (a.account_ref_mask as string | null) ?? null,
+        decryptRef(a.account_ref_enc as string | null)
+        ?? (a.account_ref_mask as string | null)
+        ?? null,
       valueBand: a.value_band as ValueBand,
       hasNomination:
         (a.has_nomination as boolean | null) ?? null,

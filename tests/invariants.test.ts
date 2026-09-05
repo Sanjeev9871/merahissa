@@ -266,6 +266,26 @@ describe('published promises hold', () => {
     expect(flat('app/hi/privacy/page.tsx')).toContain('प्रशिक्षित करने के लिए नहीं');
   });
 
+  // We now hold the full account number, so both notices must say so and say it
+  // is encrypted. Quietly collecting it while the page implies otherwise is the
+  // exact false-privacy-claim risk this suite exists to catch.
+  it('discloses that the full account reference is collected and encrypted', () => {
+    const en = flat('app/privacy/page.tsx');
+    expect(en).toContain('account, folio or policy number');
+    expect(en).toContain('stored encrypted');
+    const hi = flat('app/hi/privacy/page.tsx');
+    expect(hi).toContain('एन्क्रिप्ट');
+  });
+
+  // The encryption has to actually happen, not just be promised.
+  it('encrypts the account reference on the write path', () => {
+    const route = flat('api/cases/route.ts');
+    expect(route).toContain('encryptPii');
+    expect(route).toContain('account_ref_enc');
+    // And never falls back to storing it in the clear.
+    expect(route).not.toContain('account_ref_enc: a.accountRef');
+  });
+
   // PostHog sets a cookie and sends data to the US. Saying "cookieless" while
   // shipping it is the kind of false privacy claim that carries real legal
   // risk, so both notices must name it explicitly.
