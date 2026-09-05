@@ -36,7 +36,10 @@ describe('account reference is encrypted at rest', () => {
     process.env.PII_ENCRYPTION_KEY = TEST_KEY;
     const stored = encryptPii('50100234567890');
     const raw = Buffer.from(stored, 'base64');
-    raw[raw.length - 1] ^= 0xff;                     // flip a bit in the auth tag
+    // Flip a bit in the auth tag. Written with Buffer's accessors because
+    // noUncheckedIndexedAccess types raw[i] as number | undefined.
+    const last = raw.length - 1;
+    raw.writeUInt8(raw.readUInt8(last) ^ 0xff, last);
 
     let threw = false;
     try { decryptPii(raw.toString('base64')); } catch { threw = true; }
