@@ -54,11 +54,23 @@ export const assetSchema = z.object({
   kind: z.enum(ASSET_KINDS),
   institution: z.string().trim().min(2, 'Which bank, company or fund holds this?').max(160),
   /**
-   * Only the last four digits are collected. The full account number is not
-   * needed to prepare a claim form — the institution knows the account — and
-   * collecting it would create risk for no benefit.
+   * The full account, folio or policy reference, because the institutional
+   * claim forms we fill require it printed in full. It is encrypted at rest
+   * (AES-256-GCM, `assets.account_ref_enc`), displayed to the family only
+   * masked, never sent to any AI provider — the redaction layer substitutes a
+   * token before the request and `assertNoPii` fails closed on any digit run
+   * that looks like an account number — and deleted with the case.
+   *
+   * Deliberately permissive on shape: bank accounts are 9-18 digits, demat IDs
+   * 16, but mutual fund folios and policy numbers are alphanumeric and vary by
+   * registrar. Rejecting a valid reference is worse than accepting an odd one,
+   * since the family can see what they typed on the finished form.
    */
-  accountLast4: z.string().regex(/^\d{4}$/, 'Enter the last four digits only.').optional(),
+  accountRef: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9][A-Za-z0-9/-]{3,31}$/, 'Enter the account, folio or policy number as it appears on the statement.')
+    .optional(),
   valueBand: z.enum(VALUE_BANDS).default('unknown'),
   hasNomination: z.boolean().nullable().default(null),
   isJoint: z.boolean().default(false),
