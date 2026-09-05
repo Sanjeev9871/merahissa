@@ -127,7 +127,8 @@ export default function Home() {
             <span className="ft"><h3>Tell us the details</h3><span className="when">15 minutes</span></span>
             <p>
               Only now do we ask who you are. Names as they appear on documents, which
-              banks and funds, roughly how much. Never a full account number.
+              banks and funds, roughly how much, and the account numbers the claim forms
+              need — stored encrypted and shown back to you masked.
             </p>
           </li>
           <li>

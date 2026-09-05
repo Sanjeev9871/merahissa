@@ -50,8 +50,10 @@ export default function Privacy() {
           decides the legal share; the name goes on the affidavit.
         </li>
         <li>
-          <strong>Institution names, and the last four digits of an account.</strong>{' '}
-          We never ask for a full account number. The bank already knows it.
+          <strong>Institution names, and the account, folio or policy number.</strong>{' '}
+          We ask for this in full because the institution&rsquo;s own claim form has to
+          carry it. It is stored encrypted with a key held outside the database, shown
+          back to you masked, never sent to any AI system, and deleted with your case.
         </li>
         <li>
           <strong>A value range, not a balance.</strong> Ranges are all the document
