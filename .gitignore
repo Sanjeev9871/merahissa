@@ -8,6 +8,7 @@ build/
 .env
 .env.local
 .env*.local
+.env*.stage
 
 # Never commit anything that could contain case data
 /uploads/
@@ -18,3 +19,7 @@ build/
 *.tsbuildinfo
 next-env.d.ts
 coverage/
+
+# Supabase local development
+supabase/.branches/
+supabase/.temp/

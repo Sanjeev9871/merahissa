@@ -32,8 +32,8 @@ function buildCsp(nonce: string) {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    // Supabase for data and storage; Razorpay for payment status.
-    "connect-src 'self' https://*.supabase.co https://api.razorpay.com https://us.i.posthog.com https://us-assets.i.posthog.com",
+    // Supabase for data and storage; Razorpay for payment status; PostHog and Google Analytics for analytics.
+    "connect-src 'self' https://*.supabase.co https://api.razorpay.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.google-analytics.com https://www.google.com",
     "frame-src https://api.razorpay.com https://checkout.razorpay.com",
     "object-src 'none'",
     "base-uri 'self'",
