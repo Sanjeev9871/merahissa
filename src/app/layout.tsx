@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
 import { SITE, organizationJsonLd, websiteJsonLd, JsonLd } from '@/lib/seo';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-IN">
       <body>
+        <GoogleAnalytics />
         {/* Site-wide structured data. Page-level schema is added per page. */}
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
