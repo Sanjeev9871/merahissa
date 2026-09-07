@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { SITE, organizationJsonLd, websiteJsonLd, JsonLd } from '@/lib/seo';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 import { UI, HTML_LANG, localeFromPath, localePath, pathForLocale } from '@/lib/i18n';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
@@ -62,6 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <link rel="alternate" hrefLang="x-default" href={`${SITE.url}${pathForLocale(pathname, 'en')}`} />
       </head>
       <body>
+        <GoogleAnalytics />
         {/* Site-wide structured data. Page-level schema is added per page. */}
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
