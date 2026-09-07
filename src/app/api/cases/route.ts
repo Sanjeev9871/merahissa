@@ -4,6 +4,7 @@ import { supabaseServer, currentUser } from '@/lib/supabase/server';
 import { computeShares, type Heir } from '@/lib/succession';
 import { rateLimit, rateLimitHeaders } from '@/lib/ratelimit';
 import { mask } from '@/lib/redaction';
+import { encryptPii } from '@/lib/crypto';
 import { audit } from '@/lib/audit';
 
 export const runtime = 'nodejs';
@@ -84,14 +85,37 @@ export async function POST(request: NextRequest) {
     })),
   );
 
+  // The full reference is needed to fill an institution's claim form, so it is
+  // encrypted with a key that lives only in the application environment — a
+  // database dump alone yields ciphertext. The masked form is what every screen
+  // renders; the plaintext exists only in memory here and at render time.
+  //
+  // Fail SAFE, not open: if the encryption key is missing or invalid we store
+  // the mask alone rather than falling back to plaintext. A pack that has to be
+  // completed by hand is a bad afternoon; an account number sitting in clear
+  // text in Postgres is a breach.
+  let encryptionUnavailable = false;
+
+  const encryptRef = (ref: string | undefined): string | null => {
+    if (!ref) return null;
+    try {
+      return encryptPii(ref);
+    } catch (e) {
+      if (!encryptionUnavailable) {
+        console.error('[cases] PII_ENCRYPTION_KEY unusable — storing masked reference only', e);
+        encryptionUnavailable = true;
+      }
+      return null;
+    }
+  };
+
   const { error: assetError } = await supabase.from('assets').insert(
     input.assets.map((a) => ({
       case_id: caseId,
       kind: a.kind,
       institution: a.institution,
-      // Only the last four digits are ever collected, and even those are
-      // stored masked. The institution already knows the account number.
-      account_ref_mask: a.accountLast4 ? mask(`XXXXXX${a.accountLast4}`) : null,
+      account_ref_enc: encryptRef(a.accountRef),
+      account_ref_mask: a.accountRef ? mask(a.accountRef) : null,
       value_band: a.valueBand,
       has_nomination: a.hasNomination,
       is_joint: a.isJoint,

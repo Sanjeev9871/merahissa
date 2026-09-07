@@ -60,16 +60,32 @@ html, body {
   color: var(--ink);
 }
 
+/* Devanagari is appended to every stack rather than loaded as a web font: the
+   CSP is font-src 'self' and no web font is bundled, so Hindi text relies on
+   the reader's system face. Naming them explicitly stops the browser falling
+   back to a default that renders matras badly. */
 body {
-  font-family: Georgia, 'Iowan Old Style', 'Source Serif 4', serif;
+  font-family: Georgia, 'Iowan Old Style', 'Source Serif 4',
+    'Nirmala UI', 'Noto Serif Devanagari', 'Noto Sans Devanagari',
+    'Devanagari Sangam MN', 'Kohinoor Devanagari', serif;
   font-size: 17px;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, .ui {
-  font-family: 'Helvetica Neue', Arial, system-ui, sans-serif;
+  font-family: 'Helvetica Neue', Arial, system-ui,
+    'Nirmala UI', 'Noto Sans Devanagari', 'Devanagari Sangam MN',
+    'Kohinoor Devanagari', sans-serif;
 }
+
+/* Devanagari has taller ascenders and the shirorekha to clear, so Hindi pages
+   get a little more line height than the Latin default. */
+:lang(hi) body, [lang='hi-IN'] body, html[lang='hi-IN'] {
+  line-height: 1.8;
+}
+html[lang='hi-IN'] p,
+html[lang='hi-IN'] li { line-height: 1.85; }
 
 h1 { font-size: 2rem; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.5rem; text-wrap: balance; }
 h2 { font-size: 1.3rem; line-height: 1.25; letter-spacing: -0.01em; margin: 0 0 0.5rem; text-wrap: balance; }
@@ -272,6 +288,21 @@ button.btn.btn-lg, a.btn.btn-lg { padding: 0.8rem 1.6rem; }
 /* Vertical padding lifts these primary nav links to a ~44px touch target. */
 .nav-links a { color: var(--ink-mid); text-decoration: none; display: inline-block; padding: 0.55rem 0; }
 .nav-links a:hover { color: var(--accent); text-decoration: underline; }
+
+/* Language switcher: reads as a distinct control rather than a fourth nav item,
+   so someone scanning for their language finds it. */
+.lang-switch {
+  display: inline-block;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--field-border);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: var(--ink-mid) !important;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.lang-switch:hover { border-color: var(--accent); color: var(--accent) !important; }
 
 .crumbs {
   font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.82rem;

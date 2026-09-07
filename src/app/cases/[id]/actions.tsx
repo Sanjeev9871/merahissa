@@ -3,8 +3,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface RazorpayCallback {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayFailure {
+  error?: { description?: string; reason?: string };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (event: 'payment.failed', handler: (e: RazorpayFailure) => void) => void;
+}
+
 declare global {
-  interface Window { Razorpay?: new (options: unknown) => { open: () => void } }
+  interface Window { Razorpay?: new (options: unknown) => RazorpayInstance }
 }
 
 export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly }: {
@@ -51,22 +66,76 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
       return;
     }
 
-    new window.Razorpay({
+    const rzp = new window.Razorpay({
       key: order.keyId,
       order_id: order.orderId,
       amount: order.amountPaise,
       currency: 'INR',
       name: 'Mera Hissa',
       description: order.tierLabel,
-      // We do NOT mark the case paid here. The webhook is what actually records
-      // payment, because a client callback can be skipped, replayed or forged.
-      // So the case has almost certainly NOT flipped to 'paid' yet: clear the
-      // spinner and show an explicit "confirming" state rather than leaving the
-      // Pay button stuck reading "Opening payment…" as if nothing happened.
-      handler: () => { setBusy(false); setPaidPending(true); router.refresh(); },
+      // The callback is sent to our server to have its signature verified, so
+      // the family sees the payment confirmed immediately instead of waiting on
+      // the webhook. The webhook still records it independently — a browser
+      // closed the moment after paying must not lose the payment.
+      handler: (response: RazorpayCallback) => { void confirmPayment(response); },
       modal: { ondismiss: () => setBusy(false) },
       theme: { color: '#6b4423' },
-    }).open();
+    });
+
+    // Razorpay reports a declined card or a failed UPI mandate here rather than
+    // through the handler, so without this the modal simply closes and the user
+    // is told nothing.
+    rzp.on('payment.failed', (event: RazorpayFailure) => {
+      setBusy(false);
+      setPaidPending(false);
+      setError(
+        event?.error?.description
+          ? `Payment failed: ${event.error.description}`
+          : 'The payment did not go through. You have not been charged. Please try again.',
+      );
+    });
+
+    rzp.open();
+  }
+
+  /** Sends the three checkout fields for server-side signature verification. */
+  async function confirmPayment(response: RazorpayCallback) {
+    setPaidPending(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/payments/verify', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+        }),
+      });
+
+      if (res.ok) {
+        setBusy(false);
+        setPaidPending(false);
+        router.refresh();
+        return;
+      }
+
+      // Verification failed. The money may still have left the account, and the
+      // webhook may yet confirm it, so this must not read as "payment lost".
+      setBusy(false);
+      setError(
+        'We received your payment but could not confirm it automatically. '
+        + 'It is usually confirmed within a few minutes — refresh this page shortly. '
+        + 'If it still shows as unpaid, contact us and we will sort it out.',
+      );
+    } catch {
+      setBusy(false);
+      setError(
+        'We could not reach us to confirm the payment. If money has left your account, '
+        + 'refresh this page in a few minutes — the confirmation usually arrives on its own.',
+      );
+    }
   }
 
   async function generate() {
@@ -117,11 +186,8 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
 
       {paidPending && (status === 'intake_complete' || status === 'awaiting_payment') && (
         <div role="status">
-          <h2>Payment received</h2>
-          <p>
-            Thank you. We are confirming it with the bank &mdash; this usually takes a few
-            moments. Refresh this page shortly to continue.
-          </p>
+          <h2>Confirming your payment</h2>
+          <p>Thank you. We are verifying it with the bank &mdash; this takes a moment.</p>
         </div>
       )}
 

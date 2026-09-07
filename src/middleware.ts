@@ -55,6 +55,10 @@ export async function middleware(request: NextRequest) {
   // Next.js reads this nonce during dynamic rendering.
   requestHeaders.set('x-nonce', nonce);
 
+  // The root layout reads this to pick the language for the site chrome and the
+  // <html lang> attribute. A layout cannot otherwise see the pathname.
+  requestHeaders.set('x-pathname', request.nextUrl.pathname);
+
   // Next.js also needs to see the CSP on the request.
   requestHeaders.set(
     'Content-Security-Policy',
