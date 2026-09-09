@@ -6,8 +6,7 @@ import { requirementsFor, type AssetFacts } from '@/lib/requirements';
 import { computeShares, fractionToString, type Heir } from '@/lib/succession';
 import { ASSET_KINDS, REGIMES, RELATIONSHIPS } from '@/lib/validation';
 import {
-  TRIAGE_COPY, REL_LABELS_BY_LOCALE, REGIME_LABELS_BY_LOCALE, ASSET_LABELS_BY_LOCALE,
-  type TriageLocale,
+  TRIAGE_COPY, REL_LABELS, REGIME_LABELS, ASSET_LABELS,
 } from '@/lib/triage-copy';
 
 /**
@@ -24,11 +23,8 @@ import {
 
 interface HeirRow { id: string; relationship: string }
 
-export default function Triage({ locale = 'en' }: { locale?: TriageLocale }) {
-  const t = TRIAGE_COPY[locale];
-  const REL_LABELS = REL_LABELS_BY_LOCALE[locale];
-  const REGIME_LABELS = REGIME_LABELS_BY_LOCALE[locale];
-  const ASSET_LABELS = ASSET_LABELS_BY_LOCALE[locale];
+export default function Triage() {
+  const t = TRIAGE_COPY;
   const [step, setStep] = useState(0);
   const [regime, setRegime] = useState<string>('');
   const [wasFemale, setWasFemale] = useState(false);
@@ -156,7 +152,7 @@ export default function Triage({ locale = 'en' }: { locale?: TriageLocale }) {
 
         {step === 4 && (
           <Summary regime={regime} wasFemale={wasFemale} heirs={heirs}
-            kinds={kinds} nomination={nomination} locale={locale} />
+            kinds={kinds} nomination={nomination} />
         )}
       </div>
 
@@ -175,12 +171,11 @@ export default function Triage({ locale = 'en' }: { locale?: TriageLocale }) {
   );
 }
 
-function Summary({ regime, wasFemale, heirs, kinds, nomination, locale }: {
+function Summary({ regime, wasFemale, heirs, kinds, nomination }: {
   regime: string; wasFemale: boolean; heirs: HeirRow[];
-  kinds: string[]; nomination: string; locale: TriageLocale;
+  kinds: string[]; nomination: string;
 }) {
-  const t = TRIAGE_COPY[locale];
-  const REL_LABELS = REL_LABELS_BY_LOCALE[locale];
+  const t = TRIAGE_COPY;
   const shareResult = computeShares(
     regime as Parameters<typeof computeShares>[0],
     heirs.map((h) => ({

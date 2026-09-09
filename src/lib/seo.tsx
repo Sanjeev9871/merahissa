@@ -95,7 +95,7 @@ export function organizationJsonLd() {
       contactType: 'customer support',
       email: SITE.email,
       telephone: SITE.phoneHref,
-      availableLanguage: ['English', 'Hindi'],
+      availableLanguage: ['English'],
     },
     // Stated plainly in the markup as well as on the page.
     disambiguatingDescription:

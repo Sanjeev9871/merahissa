@@ -25,7 +25,7 @@ export default function Contact() {
       <LeadForm
         source="contact_form"
         heading="Send us a message"
-        blurb="We answer within one working day, in English or Hindi."
+        blurb="We answer within one working day."
       />
 
       <section className="sect">

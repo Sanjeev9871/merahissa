@@ -2,9 +2,18 @@
  * Mera Hissa visual language.
  *
  * The people using this have had a death in the family in the last few weeks.
- * The design brief is calm, unhurried and legible — not cheerful, not
- * clinical, and with nothing that reads as a growth-optimised funnel.
- * Generous line height, real reading serif, muted warm neutrals.
+ * Calm and unhurried is still the brief — but calm is not the same as timid,
+ * and the previous stylesheet had confused the two. This one is editorial:
+ * a display serif that behaves like a masthead, wide hairline-ruled sections,
+ * black rectangular buttons with small uppercase labels, and full-bleed dark
+ * bands where the page needs to change its voice.
+ *
+ * No countdowns, no gradients, no bounce. Confidence comes from typographic
+ * scale and generous space, which is the one kind of visual persuasion that
+ * does not read as predatory to someone who has just buried a parent.
+ *
+ * Typography is loaded through next/font (see layout.tsx), which self-hosts the
+ * files at build time — required, because the CSP is font-src 'self'.
  */
 
 :root {
@@ -13,37 +22,54 @@
      in the dark theme instead of staying light on a dark page. */
   color-scheme: light dark;
 
-  --ground: #faf8f5;
-  --surface: #ffffff;
-  --surface-2: #f2efe9;
-  --ink: #1c1a17;
-  --ink-mid: #4f4b44;
-  /* Secondary text. Darkened from #7d7869 so it clears WCAG AA 4.5:1 on all
-     three surfaces (it failed at ~3.8–4.4:1 before). */
-  --ink-soft: #6d685a;
-  --rule: #e2ddd3;
-  /* Resting form-control boundary, ~3:1 on the white field per WCAG 1.4.11.
+  --ground: #f4f1e8;
+  --surface: #fbf9f3;
+  --surface-2: #ebe6d9;
+  --ink: #17160f;
+  --ink-mid: #494437;
+  /* Secondary text, held above WCAG AA 4.5:1 on all three surfaces. */
+  --ink-soft: #6b6456;
+  --rule: #dcd5c4;
+  /* Resting form-control boundary, ~3:1 on the field per WCAG 1.4.11.
      Distinct from --rule, the low-contrast decorative divider. */
-  --field-border: #8a8168;
+  --field-border: #857d66;
+
+  /* The full-bleed dark band. */
+  --band: #1b1a13;
+  --band-ink: #f0ecdf;
+  --band-soft: #a49b83;
+  --band-rule: #3a382c;
+
   --accent: #6b4423;
   --accent-soft: #8f6640;
   --danger: #8c3327;
   --ok: #2c6142;
-  --radius: 4px;
-  --measure: 34rem;
+
+  --radius: 2px;
+  --measure: 36rem;
+  --page: 72rem;
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+
+  --display: var(--font-display), 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --text: var(--font-text), 'Helvetica Neue', Arial, system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ground: #16150f;
-    --surface: #1f1d17;
-    --surface-2: #29261e;
-    --ink: #ece8df;
-    --ink-mid: #b6b0a2;
-    /* Lightened from #8a8474 so it clears 4.5:1 on the darkest surface. */
-    --ink-soft: #a49d8b;
-    --rule: #37332a;
+    --ground: #14130e;
+    --surface: #1d1b15;
+    --surface-2: #26241c;
+    --ink: #efebe1;
+    --ink-mid: #b8b2a3;
+    --ink-soft: #a29b89;
+    --rule: #35322a;
     --field-border: #6f6857;
+
+    --band: #26241c;
+    --band-ink: #efebe1;
+    --band-soft: #a29b89;
+    --band-rule: #403c32;
+
     --accent: #d3a06a;
     --accent-soft: #a87e50;
     --danger: #e0897c;
@@ -53,6 +79,13 @@
 
 * { box-sizing: border-box; }
 
+html {
+  /* Insurance against a stray wide child scrolling the page sideways on a
+     phone. `clip` rather than `hidden` on purpose: `hidden` on an ancestor
+     silently breaks `position: sticky`, which the masthead depends on. */
+  overflow-x: clip;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -60,119 +93,174 @@ html, body {
   color: var(--ink);
 }
 
-/* Devanagari is appended to every stack rather than loaded as a web font: the
-   CSP is font-src 'self' and no web font is bundled, so Hindi text relies on
-   the reader's system face. Naming them explicitly stops the browser falling
-   back to a default that renders matras badly. */
 body {
-  font-family: Georgia, 'Iowan Old Style', 'Source Serif 4',
-    'Nirmala UI', 'Noto Serif Devanagari', 'Noto Sans Devanagari',
-    'Devanagari Sangam MN', 'Kohinoor Devanagari', serif;
+  font-family: var(--text);
   font-size: 17px;
-  line-height: 1.65;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, .ui {
-  font-family: 'Helvetica Neue', Arial, system-ui,
-    'Nirmala UI', 'Noto Sans Devanagari', 'Devanagari Sangam MN',
-    'Kohinoor Devanagari', sans-serif;
+/* ---------------------------------------------------------------------------
+   Type scale. Headings are the display serif; everything else is the text face.
+   --------------------------------------------------------------------------- */
+
+h1, h2, h3, h4 {
+  font-family: var(--display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  color: var(--ink);
 }
 
-/* Devanagari has taller ascenders and the shirorekha to clear, so Hindi pages
-   get a little more line height than the Latin default. */
-:lang(hi) body, [lang='hi-IN'] body, html[lang='hi-IN'] {
-  line-height: 1.8;
-}
-html[lang='hi-IN'] p,
-html[lang='hi-IN'] li { line-height: 1.85; }
+h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.06; margin: 0 0 0.75rem; }
+h2 { font-size: clamp(1.65rem, 3.4vw, 2.2rem); line-height: 1.12; margin: 0 0 0.6rem; }
+h3 { font-size: 1.12rem; line-height: 1.25; margin: 0; }
+h4 { font-size: 1rem; margin: 0; }
 
-h1 { font-size: 2rem; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 0.5rem; text-wrap: balance; }
-h2 { font-size: 1.3rem; line-height: 1.25; letter-spacing: -0.01em; margin: 0 0 0.5rem; text-wrap: balance; }
-p { margin: 0 0 1rem; max-width: var(--measure); }
+p { margin: 0 0 1.05rem; max-width: var(--measure); }
+
+/* A small uppercase grotesque label. The one recurring non-serif voice on the
+   site: section eyebrows, button text, timings, field names. */
+.eyebrow {
+  font-family: var(--text);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0 0 1rem;
+  display: block;
+}
 
 a { color: var(--accent); text-underline-offset: 3px; }
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, summary:focus-visible {
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
 }
 
-.shell { max-width: 46rem; margin: 0 auto; padding: 2.5rem 1.25rem 5rem; }
+/* ---------------------------------------------------------------------------
+   Page frame
+   --------------------------------------------------------------------------- */
+
+.shell {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+main { padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(2rem, 5vw, 3.5rem); }
+
+/* Paints a background to both viewport edges without the element ever being
+   wider than its parent: the spread shadow supplies the colour and the
+   clip-path lets it show horizontally only. The obvious `width: 100vw;
+   margin-inline: calc(50% - 50vw)` is avoided deliberately — 100vw includes the
+   scrollbar, so it overhangs by ~15px on Windows and needs the whole page
+   clipped to hide it. This version overflows nothing, so the text inside stays
+   on the shell's own left edge with no arithmetic to keep in step. */
+.bleed {
+  box-shadow: 0 0 0 100vmax var(--bleed-color, var(--ground));
+  clip-path: inset(0 -100vmax);
+}
 
 .masthead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
-  align-items: baseline;
-  gap: 0.75rem 1.25rem;
-  /* Wrap the nav onto its own line on the narrowest phones rather than letting
-     the row squeeze the wordmark until the brand name breaks across two lines. */
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
   flex-wrap: wrap;
-  padding-bottom: 1rem;
-  margin-bottom: 2rem;
+  padding: 1rem 0;
+  background: var(--ground);
   border-bottom: 1px solid var(--rule);
 }
-.wordmark { font-family: Georgia, serif; font-size: 1.25rem; letter-spacing: 0.02em; white-space: nowrap; }
-.tagline { font-size: 0.8rem; color: var(--ink-soft); font-family: 'Helvetica Neue', Arial, sans-serif; }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  margin-bottom: 1rem;
+.wordmark-link { text-decoration: none; color: inherit; }
+.wordmark {
+  font-family: var(--display);
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
 }
+.wordmark .dot { color: var(--accent); }
 
-.field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.1rem; }
-.field label { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.9rem; font-weight: 500; }
-.field .hint { font-size: 0.85rem; color: var(--ink-soft); }
-.field .error { font-size: 0.85rem; color: var(--danger); }
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem 1.6rem;
+  flex-wrap: wrap;
+  font-family: var(--text);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.nav-links a {
+  color: var(--ink-mid);
+  text-decoration: none;
+  display: inline-block;
+  padding: 0.55rem 0;
+}
+.nav-links a:hover { color: var(--ink); }
+/* The nav's own call to action carries the button treatment. */
+.nav-links a.btn { padding: 0.6rem 1.1rem; }
 
-/* All text-like inputs share this. type='tel'/'number'/'search' were missing,
-   so the contact form's phone field fell back to the 13px UA default and
-   triggered iOS focus-zoom — the 1rem sizing here is exactly what prevents it. */
-input[type='text'], input[type='date'], input[type='email'],
-input[type='tel'], input[type='number'], input[type='search'], select {
-  font: inherit;
-  font-size: 1rem;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid var(--field-border);
-  border-radius: var(--radius);
-  background: var(--surface);
+/* The oversized wordmark that closes the page. Deliberately clipped by the
+   viewport at small sizes — it is a device, not a thing to read twice. */
+.wordmark-band {
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 16.5vw, 14rem);
+  line-height: 0.84;
+  letter-spacing: -0.04em;
   color: var(--ink);
-  width: 100%;
+  padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(0.75rem, 2vw, 1.25rem);
+  border-top: 1px solid var(--rule);
+  white-space: nowrap;
+  overflow: hidden;
+  user-select: none;
 }
 
-.choice { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.choice label {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  /* ~44px tall so the repeatedly-tapped wizard pills clear the touch-target
-     minimum on a phone. */
-  padding: 0.6rem 0.95rem;
-  border: 1px solid var(--field-border);
-  border-radius: 999px;
-  background: var(--surface);
-  cursor: pointer;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  font-size: 0.9rem;
-}
-.choice label:has(input:checked) { border-color: var(--accent); background: var(--surface-2); }
-.choice input { accent-color: var(--accent); }
+/* ---------------------------------------------------------------------------
+   Buttons. Solid black rectangle, small uppercase label.
+   --------------------------------------------------------------------------- */
 
-button.primary, a.primary {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  font-size: 1rem;
-  padding: 0.7rem 1.4rem;
-  border: none;
+button.btn, a.btn, button.primary, a.primary {
+  font-family: var(--text);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.95rem 1.6rem;
+  border: 1px solid var(--ink);
   border-radius: var(--radius);
-  background: var(--accent);
+  background: var(--ink);
   color: var(--ground);
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+button.btn:hover, a.btn:hover, button.primary:hover, a.primary:hover {
+  background: transparent;
+  color: var(--ink);
+}
+button.btn.btn-lg, a.btn.btn-lg { padding: 1.1rem 2rem; font-size: 0.8rem; }
+button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+button.primary:disabled:hover { background: var(--ink); color: var(--ground); }
+
 button.quiet, a.quiet {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background: none; border: 1px solid var(--field-border); color: var(--ink-mid);
-  padding: 0.7rem 1.1rem; border-radius: var(--radius); cursor: pointer;
+  font-family: var(--text);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid var(--field-border);
+  color: var(--ink-mid);
+  padding: 0.95rem 1.4rem;
+  border-radius: var(--radius);
+  cursor: pointer;
 }
+button.quiet:hover, a.quiet:hover { border-color: var(--ink); color: var(--ink); }
 
 /* The CTAs are Links, not buttons wrapped in a Link (which is invalid HTML and
    a double tab stop). An anchor with a button class renders as the button. */
@@ -180,220 +268,337 @@ a.primary, a.quiet, a.btn {
   display: inline-block;
   text-decoration: none;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.2;
 }
 
+/* On the dark band the button inverts so it stays the brightest thing there. */
+.band a.btn, .band button.btn {
+  background: var(--band-ink);
+  border-color: var(--band-ink);
+  color: var(--band);
+}
+.band a.btn:hover, .band button.btn:hover { background: transparent; color: var(--band-ink); }
+
+/* ---------------------------------------------------------------------------
+   Landing page
+   --------------------------------------------------------------------------- */
+
+.hero { padding: clamp(0.5rem, 3vw, 2rem) 0 clamp(1rem, 3vw, 2rem); }
+.hero h1 {
+  font-size: clamp(2.6rem, 7.4vw, 5.6rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  max-width: 15ch;
+  margin: 0 0 1.5rem;
+}
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero .sub {
+  font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+  color: var(--ink-mid);
+  max-width: 46ch;
+  margin: 0 0 2.25rem;
+  line-height: 1.55;
+}
+
+.cta-row { display: flex; align-items: center; gap: 1rem 1.5rem; flex-wrap: wrap; }
+.cta-note {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* Section: a hairline, an eyebrow, then the content. */
+.sect {
+  padding-top: clamp(2.5rem, 6vw, 4.5rem);
+  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+  border-top: 1px solid var(--rule);
+}
+.sect > h2 { max-width: 20ch; }
+.sect > .sub {
+  color: var(--ink-mid);
+  max-width: 52ch;
+  margin-bottom: clamp(1.75rem, 4vw, 2.75rem);
+  font-size: 1.02rem;
+}
+
+/* Full-bleed dark band, for the section that has to change its voice. */
+.band {
+  --bleed-color: var(--band);
+  background: var(--band);
+  color: var(--band-ink);
+  padding-block: clamp(3rem, 8vw, 6rem);
+  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+  border-top: none;
+}
+.band h2, .band h3 { color: var(--band-ink); }
+.band .sub, .band p { color: var(--band-soft); }
+.band .eyebrow { color: var(--band-soft); }
+/* The band is already exactly the shell's content width, so this is a plain
+   grouping element — it needs no width or padding of its own. */
+.band-inner { max-width: 100%; }
+
+/* Trust: hairline-ruled editorial grid, no cards. */
+.trust {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 0 2.5rem;
+  border-top: 1px solid var(--rule);
+}
+.trust > div {
+  padding: 1.75rem 0;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.trust h3 { font-size: 1.2rem; }
+.trust p { font-size: 0.92rem; line-height: 1.6; color: var(--ink-mid); margin: 0; max-width: 38ch; }
+
+/* How it works: big serif numerals hanging in the margin. */
+.flow { list-style: none; padding: 0; margin: 0; }
+.flow li {
+  display: grid;
+  grid-template-columns: minmax(3.5rem, 5rem) 1fr;
+  gap: 0.4rem 1.5rem;
+  padding: 1.6rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.flow li:first-child { border-top: 1px solid var(--rule); }
+.flow .dot {
+  grid-row: 1 / span 2;
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  line-height: 0.85;
+  color: var(--ink-soft);
+  letter-spacing: -0.03em;
+}
+.flow .ft { display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap; }
+.flow h3 { font-size: 1.3rem; }
+.flow .when {
+  font-family: var(--text);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.flow .when[data-slow='yes'] { color: var(--danger); }
+.flow p { font-size: 0.95rem; color: var(--ink-mid); margin: 0.5rem 0 0; max-width: 56ch; }
+
+/* What we cannot do. Sits on the dark band, so it reads as a statement. */
+.limits { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; }
+.limits li {
+  display: grid;
+  grid-template-columns: 1.75rem 1fr;
+  gap: 0.9rem;
+  padding: 1.15rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--rule);
+  max-width: 62ch;
+}
+.limits li:first-child { border-top: 1px solid var(--rule); }
+.limits .x { font-family: var(--display); font-size: 1.3rem; line-height: 1; color: var(--danger); }
+.band .limits li { border-color: var(--band-rule); color: var(--band-ink); }
+/* --danger is tuned for the cream ground and all but disappears on the band. */
+.band .limits .x { color: #e08b7e; }
+
+.plain-note {
+  border-left: 2px solid var(--accent);
+  padding: 0.35rem 0 0.35rem 1.5rem;
+  font-size: 1rem;
+  color: var(--ink-mid);
+  max-width: 54ch;
+}
+.plain-note strong { color: var(--ink); font-weight: 600; }
+
+/* ---------------------------------------------------------------------------
+   Application surfaces: forms, wizard, cases
+   --------------------------------------------------------------------------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: clamp(1.35rem, 3vw, 2rem);
+  margin-bottom: 1rem;
+  max-width: 46rem;
+}
+
+.field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.25rem; }
+.field > label {
+  font-family: var(--text);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-mid);
+}
+.hint { color: var(--ink-soft); font-size: 0.88rem; line-height: 1.5; }
+.field .error { font-size: 0.88rem; color: var(--danger); }
+
+/* All text-like inputs share this. The 1rem sizing is exactly what prevents
+   iOS focus-zoom on the phone field. */
+input[type='text'], input[type='date'], input[type='email'],
+input[type='tel'], input[type='number'], input[type='search'],
+select, textarea {
+  font-family: var(--text);
+  font-size: 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
+}
+textarea { resize: vertical; }
+
+.choice { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.choice label {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  /* ~44px tall so the repeatedly-tapped wizard pills clear the touch-target
+     minimum on a phone. */
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: var(--text);
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--ink);
+}
+.choice label:has(input:checked) { border-color: var(--ink); background: var(--ink); color: var(--ground); }
+.choice input { accent-color: var(--accent); }
+
 .notice {
-  border-left: 3px solid var(--accent);
+  border-left: 2px solid var(--ink);
   background: var(--surface-2);
-  padding: 1rem 1.2rem;
+  padding: 1.1rem 1.35rem;
   border-radius: 0 var(--radius) var(--radius) 0;
-  font-size: 0.95rem;
-  margin-bottom: 1.25rem;
+  font-size: 0.96rem;
+  margin-bottom: 1.35rem;
+  max-width: 52rem;
 }
 .notice.warn { border-left-color: var(--danger); }
 
-.steps { display: flex; gap: 0.4rem; margin-bottom: 1.5rem; list-style: none; padding: 0; }
-.steps li {
-  flex: 1; height: 3px; background: var(--rule); border-radius: 2px;
-}
-.steps li[data-done='true'] { background: var(--accent); }
+.steps { display: flex; gap: 0.35rem; margin-bottom: 2rem; list-style: none; padding: 0; }
+.steps li { flex: 1; height: 2px; background: var(--rule); }
+.steps li[data-done='true'] { background: var(--ink); }
 
 .disclaimer {
-  margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
-  font-size: 0.82rem; color: var(--ink-soft); line-height: 1.6;
+  margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--rule);
+  font-size: 0.8rem; color: var(--ink-soft); line-height: 1.6; max-width: 70ch;
 }
 
-/* =========================================================================
-   Landing page. Ported from the prototype so the two stay in step.
-   ========================================================================= */
-  /* ---- landing ---- */
-  .hero{padding:.5rem 0 2.2rem;}
-  .hero h1{
-    font-size:clamp(1.75rem,4.6vw,2.7rem);line-height:1.1;letter-spacing:-.028em;
-    font-weight:600;max-width:19ch;margin:0 0 1.1rem;
-  }
-  .hero h1 em{font-style:normal;color:var(--accent);}
-  .hero .sub{font-size:clamp(1rem,2.1vw,1.15rem);color:var(--ink-mid);max-width:54ch;margin:0 0 1.6rem;}
-  .cta-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
-  .btn-lg{padding:.8rem 1.6rem;font-size:1rem;border:none;background:var(--accent);font-weight:500;}
-  .cta-note{font-size:.85rem;color:var(--ink-soft);}
-
-  .sect{padding-top:2.4rem;margin-top:2.4rem;border-top:1px solid var(--rule);}
-  .sect > h2{font-size:1.35rem;margin-bottom:.35rem;}
-  .sect > .sub{color:var(--ink-mid);max-width:58ch;margin-bottom:1.5rem;}
-
-  .trust{display:grid;grid-template-columns:repeat(auto-fit,minmax(15.5rem,1fr));gap:1px;
-    background:var(--rule);border:1px solid var(--rule);border-radius:5px;overflow:hidden;}
-  .trust > div{background:var(--surface);padding:1.15rem 1.25rem;display:flex;flex-direction:column;gap:.45rem;}
-  .trust h3{font-size:.95rem;color:var(--ink);}
-  .trust p{font-size:.88rem;line-height:1.55;color:var(--ink-mid);margin:0;max-width:none;}
-
-  .flow{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;}
-  .flow li{display:grid;grid-template-columns:1.6rem 1fr;gap:0 .9rem;padding:.85rem 0;
-    border-bottom:1px solid var(--rule);}
-  .flow li:last-child{border-bottom:none;}
-  .flow .dot{
-    grid-row:1/span 2;width:1.6rem;height:1.6rem;border-radius:50%;
-    background:var(--surface-2);color:var(--accent);
-    font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:600;
-    display:flex;align-items:center;justify-content:center;margin-top:.15rem;
-  }
-  .flow .ft{display:flex;align-items:baseline;gap:.6rem;flex-wrap:wrap;}
-  .flow h3{font-size:.98rem;}
-  .flow .when{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.07em;
-    text-transform:uppercase;color:var(--ink-soft);}
-  .flow .when[data-slow="yes"]{color:var(--danger);}
-  .flow p{font-size:.88rem;color:var(--ink-mid);margin:.25rem 0 0;max-width:58ch;}
-
-  .limits{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.55rem;}
-  .limits li{display:flex;gap:.6rem;font-size:.92rem;color:var(--ink-mid);}
-  .limits .x{color:var(--danger);font-weight:600;flex:0 0 auto;}
-
-  .plain-note{
-    background:var(--surface-2);border-radius:5px;padding:1.15rem 1.35rem;
-    font-size:.92rem;color:var(--ink-mid);
-  }
-  .plain-note strong{color:var(--ink);}
-
-
-/* The landing markup uses .btn/.btn-lg; the rest of the app uses .primary.
-   Alias them so one button style serves both rather than drifting apart. */
-h3 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.94rem; margin: 0; font-weight: 600; }
-
-button.btn, a.btn {
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  border: none; border-radius: var(--radius);
-  background: var(--accent); color: var(--ground);
-  padding: 0.7rem 1.4rem; font-size: 1rem; cursor: pointer;
-}
-button.btn.btn-lg, a.btn.btn-lg { padding: 0.8rem 1.6rem; }
-
-/* =========================================================================
-   Site chrome, FAQ and guides.
-   ========================================================================= */
+/* ---------------------------------------------------------------------------
+   Content: guides, FAQ, breadcrumbs
+   --------------------------------------------------------------------------- */
 
 .skip {
   position: absolute; left: -9999px;
-  background: var(--accent); color: var(--ground);
-  padding: 0.6rem 1rem; border-radius: 0 0 var(--radius) 0; z-index: 10;
+  background: var(--ink); color: var(--ground);
+  padding: 0.75rem 1.25rem; z-index: 30;
+  font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
 }
 .skip:focus { left: 0; top: 0; }
 
-.masthead { justify-content: space-between; }
-.wordmark-link { text-decoration: none; color: inherit; }
-.wordmark .dot { color: var(--accent); }
-
-.nav-links { display: flex; gap: 0.4rem 1.1rem; flex-wrap: wrap; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.9rem; }
-/* Vertical padding lifts these primary nav links to a ~44px touch target. */
-.nav-links a { color: var(--ink-mid); text-decoration: none; display: inline-block; padding: 0.55rem 0; }
-.nav-links a:hover { color: var(--accent); text-decoration: underline; }
-
-/* Language switcher: reads as a distinct control rather than a fourth nav item,
-   so someone scanning for their language finds it. */
-.lang-switch {
-  display: inline-block;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--field-border);
-  border-radius: 999px;
-  font-size: 0.85rem;
-  line-height: 1.3;
-  color: var(--ink-mid) !important;
-  text-decoration: none;
-  white-space: nowrap;
-}
-.lang-switch:hover { border-color: var(--accent); color: var(--accent) !important; }
-
 .crumbs {
-  font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.82rem;
-  color: var(--ink-soft); margin-bottom: 1rem;
+  font-family: var(--text); font-size: 0.7rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 1.5rem;
 }
-.crumbs a { color: var(--ink-soft); }
-.crumbs span { margin: 0 0.35rem; }
+.crumbs a { color: var(--ink-soft); text-decoration: none; }
+.crumbs a:hover { color: var(--ink); }
+.crumbs span { margin: 0 0.45rem; }
 
 /* Native <details> rather than a JS accordion: works before hydration,
    keyboard accessible for free, and find-in-page reaches collapsed answers. */
-.faq-list { display: flex; flex-direction: column; }
-.faq {
-  border-bottom: 1px solid var(--rule);
-  padding: 0.15rem 0;
-}
-.faq:last-child { border-bottom: none; }
+.faq-list { display: flex; flex-direction: column; border-top: 1px solid var(--rule); max-width: 52rem; }
+.faq { border-bottom: 1px solid var(--rule); }
 .faq summary {
-  cursor: pointer; padding: 0.9rem 2rem 0.9rem 0; position: relative;
-  font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 1rem;
-  font-weight: 500; line-height: 1.4; list-style: none;
+  cursor: pointer; padding: 1.25rem 2.5rem 1.25rem 0; position: relative;
+  font-family: var(--display); font-size: 1.2rem;
+  font-weight: 400; line-height: 1.3; list-style: none;
 }
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::after {
-  content: '+'; position: absolute; right: 0.35rem; top: 0.8rem;
-  color: var(--accent); font-size: 1.2rem; line-height: 1;
+  content: '+'; position: absolute; right: 0.35rem; top: 1.2rem;
+  font-family: var(--text); color: var(--ink-soft); font-size: 1.1rem; line-height: 1;
 }
 .faq[open] summary::after { content: '\2212'; }
 .faq summary:hover { color: var(--accent); }
-.faq p { padding: 0 0 1rem; margin: 0; color: var(--ink-mid); max-width: 62ch; }
+.faq p { padding: 0 0 1.35rem; margin: 0; color: var(--ink-mid); max-width: 62ch; }
 
-.guide-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.guide-list {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 0 2.5rem; border-top: 1px solid var(--rule);
+}
 .guide-card {
   display: block; text-decoration: none; color: inherit;
-  background: var(--surface); border: 1px solid var(--rule);
-  border-radius: var(--radius); padding: 1.15rem 1.3rem;
+  padding: 1.6rem 0;
+  border-bottom: 1px solid var(--rule);
 }
-.guide-card:hover { border-color: var(--accent); }
-.guide-card h2 { font-size: 1.05rem; margin: 0 0 0.35rem; }
-.guide-card p { font-size: 0.9rem; color: var(--ink-mid); margin: 0 0 0.4rem; }
+.guide-card:hover h2 { color: var(--accent); }
+.guide-card h2 { font-size: 1.25rem; margin: 0 0 0.5rem; max-width: 24ch; }
+.guide-card p { font-size: 0.92rem; color: var(--ink-mid); margin: 0 0 0.4rem; max-width: 42ch; }
 
 /* The answer, before any detail. */
 .answer-first {
-  border-left: 3px solid var(--accent); background: var(--surface-2);
-  padding: 1.1rem 1.3rem; border-radius: 0 var(--radius) var(--radius) 0;
-  margin: 1.25rem 0 1.75rem;
+  border-left: 2px solid var(--accent);
+  padding: 0.35rem 0 0.35rem 1.75rem;
+  margin: 1.75rem 0 2.5rem;
+  max-width: 54ch;
 }
-.answer-first p { margin: 0; font-size: 1.03rem; }
+.answer-first p { margin: 0; font-size: 1.15rem; line-height: 1.5; color: var(--ink); }
 
-textarea {
-  font: inherit; font-size: 1rem; padding: 0.6rem 0.7rem;
-  border: 1px solid var(--field-border); border-radius: var(--radius);
-  background: var(--surface); color: var(--ink); width: 100%; resize: vertical;
-}
+/* ---------------------------------------------------------------------------
+   Footer
+   --------------------------------------------------------------------------- */
 
-.site-footer { margin-top: 4rem; padding-top: 1.75rem; border-top: 1px solid var(--rule); }
+.site-footer { padding-bottom: 3rem; }
 .foot-cols {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-  gap: 1.75rem; margin-bottom: 1.75rem;
+  gap: 2.5rem; margin-bottom: 2.5rem;
 }
-.foot-cols h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); margin-bottom: 0.6rem; }
-.foot-cols p { font-size: 0.85rem; color: var(--ink-mid); margin: 0; }
-.foot-cols ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
-.foot-cols a { font-size: 0.85rem; color: var(--ink-mid); text-decoration: none; }
-.foot-cols a:hover { color: var(--accent); text-decoration: underline; }
+.foot-cols h3 {
+  font-family: var(--text);
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--ink-soft); margin-bottom: 0.9rem; font-weight: 600;
+}
+.foot-cols p { font-size: 0.88rem; color: var(--ink-mid); margin: 0; max-width: 32ch; }
+.foot-cols ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.foot-cols a { font-size: 0.88rem; color: var(--ink-mid); text-decoration: none; }
+.foot-cols a:hover { color: var(--ink); text-decoration: underline; }
 
-.error { color: var(--danger); font-size: 0.88rem; }
-.sub { color: var(--ink-mid); max-width: 60ch; }
+/* ---------------------------------------------------------------------------
+   Small shared utilities
+   --------------------------------------------------------------------------- */
 
-/* =========================================================================
-   Small shared utilities.
-   ========================================================================= */
+.error { color: var(--danger); font-size: 0.9rem; }
+.sub { color: var(--ink-mid); max-width: 58ch; }
 
-/* Paired fields (phone + email on the contact form). Referenced by LeadForm
-   but never defined, so the pair always stacked; now it is a real two-up row
-   that collapses to one column when there is no space. */
+/* Paired fields (phone + email on the contact form). */
 .row { display: flex; gap: 1rem; flex-wrap: wrap; }
 .row > .field { flex: 1 1 12rem; }
 
 /* Consent checkbox rows: the label hangs the wrapped text to the right of the
-   checkbox instead of running back underneath it. The `.field label.check`
-   selector out-specifies `.field label { font-weight: 500 }` so the consent
-   text stays normal weight. */
-.field label.check, .check {
-  display: flex; align-items: flex-start; gap: 0.6rem;
-  font-family: 'Helvetica Neue', Arial, sans-serif; font-weight: 400;
+   checkbox instead of running back underneath it. The `.field > label.check`
+   selector out-specifies the uppercase field label above, so the consent text
+   stays sentence case and readable. */
+.field > label.check, .check {
+  display: flex; align-items: flex-start; gap: 0.65rem;
+  font-family: var(--text); font-weight: 400;
+  font-size: 0.92rem; text-transform: none; letter-spacing: 0;
+  color: var(--ink-mid); line-height: 1.5;
 }
 
-/* A whole card that is one link (the case list). Keeps the card look without a
-   nested button and without underlining the entire card. */
+/* A whole card that is one link (the case list). */
 a.card.as-card-link { display: block; text-decoration: none; color: inherit; }
-a.card.as-card-link:hover { border-color: var(--accent); }
+a.card.as-card-link:hover { border-color: var(--ink); }
 
 /* Available to assistive tech, removed from the visual layout. */
 .visually-hidden {
@@ -403,5 +608,10 @@ a.card.as-card-link:hover { border-color: var(--accent); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

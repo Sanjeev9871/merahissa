@@ -21,8 +21,9 @@ export const metadata: Metadata = {
  *   - No signup wall. The free check runs before we ask for anything, and it
  *     gives the real answer, not a teaser.
  *   - The price is on the page before any commitment.
- *   - Limits are stated as prominently as capabilities. Naming what we cannot
- *     do builds more trust here than any claim about what we can.
+ *   - Limits are stated as prominently as capabilities — literally, here: the
+ *     one full-bleed dark band on the site is the list of things we cannot do.
+ *     Naming those builds more trust than any claim about what we can.
  *   - No testimonials, and we say why. Inventing them would be the first
  *     dishonest thing we did.
  *   - No urgency, no countdowns, no scarcity. Every growth pattern that works
@@ -33,13 +34,14 @@ export default function Home() {
   return (
     <>
       <section className="hero">
+        <span className="eyebrow">Estate claim paperwork for Indian families</span>
         <h1>
-          The bank wants a succession certificate. The insurer wants something
-          else. <em>Nobody has given you the whole list.</em>
+          Nobody gave you <em>the whole list</em>.
         </h1>
         <p className="sub">
-          Answer six questions about your family and what they left. We will tell
-          you exactly which documents each institution needs, and what the law says
+          The bank wants a succession certificate. The insurer wants something else.
+          Answer six questions about your family and what they left, and we will tell
+          you exactly which documents each institution needs — and what the law says
           each person inherits.
         </p>
         <div className="cta-row">
@@ -49,8 +51,8 @@ export default function Home() {
       </section>
 
       <section className="sect">
-        <h2>Before you trust us with anything</h2>
-        <p className="sub">Six things we would want to know, if we were you.</p>
+        <span className="eyebrow">Before you trust us with anything</span>
+        <h2>Six things we would want to know, if we were you</h2>
 
         <div className="trust">
           <div>
@@ -105,10 +107,10 @@ export default function Home() {
       </section>
 
       <section className="sect">
-        <h2>How it works</h2>
+        <span className="eyebrow">How it works</span>
+        <h2>Five steps, and we have marked the slow one</h2>
         <p className="sub">
-          Five steps. We have marked the one that is genuinely slow, because everyone
-          else hides it. Prefer to see it rather than read it?{' '}
+          Everyone else hides it. Prefer to see it rather than read it?{' '}
           <Link href="/examples">Three worked examples</Link> show what a case looks like,
           start to finish.
         </p>
@@ -128,7 +130,7 @@ export default function Home() {
             <p>
               Only now do we ask who you are. Names as they appear on documents, which
               banks and funds, roughly how much, and the account numbers the claim forms
-              need — stored encrypted and shown back to you masked.
+              need &mdash; stored encrypted and shown back to you masked.
             </p>
           </li>
           <li>
@@ -164,20 +166,25 @@ export default function Home() {
         </ol>
       </section>
 
-      <section className="sect">
-        <h2>What we cannot do</h2>
-        <p className="sub">Worth reading before you spend anything.</p>
-        <ul className="limits">
-          <li><span className="x" aria-hidden="true">&times;</span><span>We are not a law firm and cannot give you legal advice.</span></li>
-          <li><span className="x" aria-hidden="true">&times;</span><span>We cannot appear for you in any court or tribunal. Succession certificates and probate need an advocate &mdash; we prepare everything around them and can introduce you to one.</span></li>
-          <li><span className="x" aria-hidden="true">&times;</span><span>We cannot make an institution accept a claim, and we cannot make one move faster.</span></li>
-          <li><span className="x" aria-hidden="true">&times;</span><span>We cannot notarise anything, or buy your stamp paper for you.</span></li>
-          <li><span className="x" aria-hidden="true">&times;</span><span>We do not compute Muslim intestate shares. That needs school-specific rules a piece of software should not be guessing at, so those cases go to an advocate.</span></li>
-        </ul>
+      {/* The one place on the site that changes colour. It is not the sales
+          pitch — it is the list of things we cannot do. That is deliberate. */}
+      <section className="band bleed">
+        <div className="band-inner">
+          <span className="eyebrow">Worth reading before you spend anything</span>
+          <h2>What we cannot do</h2>
+          <ul className="limits">
+            <li><span className="x" aria-hidden="true">&times;</span><span>We are not a law firm and cannot give you legal advice.</span></li>
+            <li><span className="x" aria-hidden="true">&times;</span><span>We cannot appear for you in any court or tribunal. Succession certificates and probate need an advocate &mdash; we prepare everything around them and can introduce you to one.</span></li>
+            <li><span className="x" aria-hidden="true">&times;</span><span>We cannot make an institution accept a claim, and we cannot make one move faster.</span></li>
+            <li><span className="x" aria-hidden="true">&times;</span><span>We cannot notarise anything, or buy your stamp paper for you.</span></li>
+            <li><span className="x" aria-hidden="true">&times;</span><span>We do not compute Muslim intestate shares. That needs school-specific rules a piece of software should not be guessing at, so those cases go to an advocate.</span></li>
+          </ul>
+        </div>
       </section>
 
       <section className="sect">
-        <h2>There are no customer quotes on this page</h2>
+        <span className="eyebrow">On this page you will not find</span>
+        <h2>There are no customer quotes here</h2>
         <div className="plain-note">
           <p>
             <strong>We are new, and inventing testimonials would be the first
@@ -192,9 +199,9 @@ export default function Home() {
       </section>
 
       <section className="sect">
-        <h2>Start with the free check</h2>
-        <p className="sub">Six questions. Nothing is sent to us, and nothing is saved.</p>
-        <div className="cta-row">
+        <span className="eyebrow">Start here</span>
+        <h2>Six questions. Nothing is sent to us, and nothing is saved.</h2>
+        <div className="cta-row" style={{ marginTop: '2rem' }}>
           <Link href="/triage" className="btn btn-lg">Find out what my case needs</Link>
           <span className="cta-note">You can stop at any point</span>
         </div>

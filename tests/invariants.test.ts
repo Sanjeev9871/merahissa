@@ -239,42 +239,37 @@ describe('published promises hold', () => {
   const flat = (rel: string) =>
     files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
 
-  // The chrome disclaimer moved into the i18n dictionary when the site became
-  // bilingual, so that is where these promises now live. It is checked in BOTH
-  // languages: a promise kept only in English is not kept for the Hindi reader.
-  it('shows the disclaimer on every page, in both languages', () => {
-    const ui = flat('lib/i18n.ts');
-    expect(ui).toContain('not a law firm');
-    expect(ui).toContain('not legal advice');
-    // Hindi: "we are not a law firm" / "this is not legal advice".
-    expect(ui).toContain('लॉ फर्म नहीं');
-    expect(ui).toContain('कानूनी सलाह नहीं');
+  // The chrome disclaimer lives inline in the root layout, which wraps every
+  // page. Hindi was removed from the site, so there is one copy to keep true —
+  // but it is still the copy that keeps the service lawful for a non-advocate
+  // operator, so it is still asserted here rather than trusted to stay put.
+  it('shows the disclaimer on every page', () => {
+    const chrome = flat('app/layout.tsx');
+    expect(chrome).toContain('not a law firm');
+    expect(chrome).toContain('not legal advice');
+    expect(chrome).toContain('refer you to an advocate');
   });
 
   it('keeps the 90-day retention figure consistent across code and copy', () => {
     // A promise made in the privacy notice that the code does not keep is
     // worse than no promise. These must move together.
     expect(flat('lib/uploads.ts')).toContain('RETENTION_DAYS = 90');
-    expect(flat('lib/i18n.ts')).toContain('90 days');
-    expect(flat('lib/i18n.ts')).toContain('90 दिन');
+    expect(flat('app/layout.tsx')).toContain('90 days');
     expect(flat('app/privacy/page.tsx')).toContain('90 days');
-    expect(flat('app/hi/privacy/page.tsx')).toContain('90 दिन');
   });
 
-  it('states in both privacy notices that data is not used for training', () => {
+  it('states in the privacy notice that data is not used for training', () => {
     expect(flat('app/privacy/page.tsx')).toContain('not used to train');
-    expect(flat('app/hi/privacy/page.tsx')).toContain('प्रशिक्षित करने के लिए नहीं');
+    expect(flat('app/layout.tsx')).toContain('never used to train');
   });
 
-  // We now hold the full account number, so both notices must say so and say it
+  // We now hold the full account number, so the notice must say so and say it
   // is encrypted. Quietly collecting it while the page implies otherwise is the
   // exact false-privacy-claim risk this suite exists to catch.
   it('discloses that the full account reference is collected and encrypted', () => {
     const en = flat('app/privacy/page.tsx');
     expect(en).toContain('account, folio or policy number');
     expect(en).toContain('stored encrypted');
-    const hi = flat('app/hi/privacy/page.tsx');
-    expect(hi).toContain('एन्क्रिप्ट');
   });
 
   // The encryption has to actually happen, not just be promised.
@@ -288,14 +283,11 @@ describe('published promises hold', () => {
 
   // PostHog sets a cookie and sends data to the US. Saying "cookieless" while
   // shipping it is the kind of false privacy claim that carries real legal
-  // risk, so both notices must name it explicitly.
-  it('discloses the cookie-setting analytics in both privacy notices', () => {
+  // risk, so the notice must name it explicitly.
+  it('discloses the cookie-setting analytics in the privacy notice', () => {
     const en = flat('app/privacy/page.tsx');
     expect(en).toContain('PostHog');
     expect(en).toContain('sets a cookie');
-    const hi = flat('app/hi/privacy/page.tsx');
-    expect(hi).toContain('PostHog');
-    expect(hi).toContain('कुकी');
   });
 });
 
