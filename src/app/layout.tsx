@@ -4,6 +4,7 @@ import { Instrument_Serif, Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { SITE, organizationJsonLd, websiteJsonLd, JsonLd } from '@/lib/seo';
+import { isProductionDeploy } from '@/lib/site';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 export const dynamic = 'force-dynamic';
@@ -51,7 +52,13 @@ export const metadata: Metadata = {
     type: 'website', locale: SITE.locale, siteName: SITE.name,
     url: SITE.url, title: SITE.tagline, description: SITE.description,
   },
-  robots: { index: true, follow: true },
+  // robots.txt asks crawlers not to fetch staging; this tag is what stops a
+  // staging page that someone linked to from being indexed anyway. Both are
+  // needed, because a disallowed URL can still appear in results on the
+  // strength of inbound links alone.
+  robots: isProductionDeploy()
+    ? { index: true, follow: true }
+    : { index: false, follow: false, nocache: true },
   formatDetection: { telephone: true, email: true },
 };
 
@@ -75,6 +82,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
         <a href="#main" className="skip">Skip to content</a>
+
+        {/* Never rendered on www.merahissa.in. It exists because the two sites
+            are otherwise identical, and testing a payment against the live site
+            by mistake is the exact thing this environment split is for. */}
+        {!isProductionDeploy() && (
+          <div className="env-banner" role="status">
+            Staging &mdash; Razorpay test mode. No real payment is taken here, and
+            this site is not indexed by search engines.
+          </div>
+        )}
 
         <div className="shell">
           <header className="masthead">

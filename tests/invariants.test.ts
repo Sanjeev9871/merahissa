@@ -360,3 +360,59 @@ describe('lead capture stays an offer, not a gate', () => {
     expect(sql).not.toContain('leads for select to anon');
   });
 });
+
+describe('staging and production stay separated', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // The mode guard is only worth anything if it is on the path that reaches
+  // Razorpay. createOrder is the one place the key id is read for a charge, so
+  // that is where the check has to sit — and it has to sit BEFORE the fetch.
+  it('checks the payment mode before creating an order', () => {
+    const src = flat('lib/payments.ts');
+    expect(src).toContain('assertPaymentModeMatchesDeployment(keyId)');
+
+    const guardAt = src.indexOf('assertPaymentModeMatchesDeployment(keyId)');
+    const fetchAt = src.indexOf('https://api.razorpay.com/v1/orders');
+    expect(guardAt > 0 && fetchAt > guardAt).toBe(true);
+  });
+
+  // Deriving the environment from the origin's host is the load-bearing choice:
+  // VERCEL_ENV reads "production" on a separate staging project too, so it
+  // cannot be the thing that decides whether real cards may be charged.
+  it('decides the environment from the canonical host, not VERCEL_ENV alone', () => {
+    const src = flat('lib/site.ts');
+    expect(src).toContain("export const PRODUCTION_HOST = 'www.merahissa.in'");
+    expect(src).toContain('if (host === PRODUCTION_HOST && process.env.VERCEL) return');
+  });
+
+  // If a preview build fell back to the production origin it would both publish
+  // canonicals pointing at www and look like production to the payment guard.
+  it('never lets a preview deployment claim the production origin', () => {
+    const src = flat('lib/site.ts');
+    expect(src).toContain("if (vercelEnv === 'preview' && vercelUrl) return");
+
+    const previewAt = src.indexOf("vercelEnv === 'preview'");
+    const fallbackAt = src.indexOf('return `https://${PRODUCTION_HOST}`');
+    expect(previewAt > 0 && fallbackAt > previewAt).toBe(true);
+  });
+
+  // Two independent brakes. robots.txt stops the crawl; the meta tag stops a
+  // staging URL someone linked to from being indexed regardless.
+  it('keeps everything but production out of the index, twice over', () => {
+    const robots = flat('app/robots.ts');
+    expect(robots).toContain('if (!isProductionDeploy())');
+    expect(robots).toContain("rules: [{ userAgent: '*', disallow: '/' }]");
+
+    const layout = flat('app/layout.tsx');
+    expect(layout).toContain('robots: isProductionDeploy()');
+    expect(layout).toContain('{ index: false, follow: false, nocache: true }');
+  });
+
+  // Production must look exactly as it did before any of this existed.
+  it('shows the staging banner nowhere but off production', () => {
+    const layout = flat('app/layout.tsx');
+    expect(layout).toContain('{!isProductionDeploy() && (');
+    expect(layout).toContain('env-banner');
+  });
+});

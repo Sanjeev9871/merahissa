@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { deployEnv, type DeployEnv } from './site.ts';
 
 /**
  * Razorpay integration.
@@ -139,6 +140,64 @@ export function verifyWebhookSignature(params: {
 }
 
 // ---------------------------------------------------------------------------
+// Test mode vs live mode
+//
+// Staging runs Razorpay test mode; production runs live mode. Getting this
+// wrong is expensive in both directions and silent in both directions:
+//
+//   - live keys on staging  -> a routine test charges someone's real card
+//   - test keys on production -> customers see a successful payment and we are
+//     never actually paid, and nothing looks broken until the money is counted
+//
+// Neither shows up as an error on its own, so the mode is derived from the key
+// and checked against the deployment before any order is created. A mismatch
+// throws; the order route already turns a throw here into a 502 and a "please
+// try again" message, which is the correct outcome — refusing to transact is
+// always safer than transacting in the wrong mode.
+// ---------------------------------------------------------------------------
+
+export type PaymentMode = 'test' | 'live';
+
+/** Razorpay key ids carry their own mode, which is what makes this checkable. */
+export function paymentModeFromKeyId(keyId: string): PaymentMode | null {
+  if (keyId.startsWith('rzp_test_')) return 'test';
+  if (keyId.startsWith('rzp_live_')) return 'live';
+  return null;
+}
+
+/** Only the real production site may charge real cards. */
+export function expectedPaymentMode(env: DeployEnv): PaymentMode {
+  return env === 'production' ? 'live' : 'test';
+}
+
+/**
+ * Fails closed. Throws unless the configured key's mode is the one this
+ * deployment is allowed to use.
+ */
+export function assertPaymentModeMatchesDeployment(keyId: string): void {
+  const env = deployEnv();
+  const expected = expectedPaymentMode(env);
+  const actual = paymentModeFromKeyId(keyId);
+
+  if (actual === null) {
+    throw new Error(
+      'Razorpay key id is neither a test nor a live key; refusing to create an order',
+    );
+  }
+
+  if (actual !== expected) {
+    // The key id is a publishable value (it is sent to the browser to open
+    // checkout), so naming it here does not leak a secret, and knowing which
+    // key is loaded is the whole point of the message.
+    throw new Error(
+      `Razorpay ${actual} key is configured on the "${env}" deployment, which must use `
+      + `${expected} mode. Refusing to create an order. Check NEXT_PUBLIC_RAZORPAY_KEY_ID `
+      + `and RAZORPAY_KEY_SECRET for this environment.`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Order creation
 // ---------------------------------------------------------------------------
 
@@ -161,6 +220,10 @@ export async function createOrder(opts: {
   const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
   if (!keyId || !keySecret) throw new Error('Razorpay keys are not configured');
+
+  // Before anything reaches Razorpay: is this deployment allowed to use this
+  // key's mode at all? Staging must be test, production must be live.
+  assertPaymentModeMatchesDeployment(keyId);
 
   const spec = TIERS.find((t) => t.id === opts.tier);
   if (!spec) throw new Error(`Unknown tier "${opts.tier}"`);

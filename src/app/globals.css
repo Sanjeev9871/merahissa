@@ -498,6 +498,21 @@ textarea { resize: vertical; }
    Content: guides, FAQ, breadcrumbs
    --------------------------------------------------------------------------- */
 
+/* Staging-only marker bar. Loud on purpose, and it scrolls away with the page
+   rather than sticking, so it never competes with the masthead. */
+.env-banner {
+  background: var(--danger);
+  color: #fff;
+  font-family: var(--text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0.6rem var(--gutter);
+  line-height: 1.4;
+}
+
 .skip {
   position: absolute; left: -9999px;
   background: var(--ink); color: var(--ground);
