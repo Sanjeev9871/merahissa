@@ -81,7 +81,7 @@ export function organizationJsonLd() {
     description: SITE.description,
     areaServed: { '@type': 'Country', name: 'India' },
     serviceType: 'Estate transmission document preparation',
-    knowsLanguage: ['en-IN', 'hi-IN'],
+    knowsLanguage: ['en-IN'],
     telephone: SITE.phoneHref,
     address: {
       '@type': 'PostalAddress',
