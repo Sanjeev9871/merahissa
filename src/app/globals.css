@@ -54,6 +54,23 @@
   --danger: #9a3b2c;
   --ok: #2c6142;
 
+  /* Elevation, tinted with the ink rather than neutral black. A grey shadow on
+     a warm ground reads as dirt; a shadow carrying the page's own hue reads as
+     depth. Each is a tight contact shadow plus a wide, very soft ambient one —
+     one blur alone looks like a sticker. */
+  --shadow-sm: 0 1px 2px rgba(11, 58, 51, 0.04), 0 8px 20px -14px rgba(11, 58, 51, 0.18);
+  --shadow-md: 0 2px 4px rgba(11, 58, 51, 0.05), 0 18px 40px -24px rgba(11, 58, 51, 0.24);
+  --shadow-lg: 0 4px 24px rgba(11, 58, 51, 0.07), 0 32px 64px -36px rgba(11, 58, 51, 0.30);
+
+  /* Motion. Short and ease-out throughout: things settle into place rather than
+     bouncing. Nothing on this site should feel playful. */
+  --dur-xs: 150ms;
+  --dur-sm: 180ms;
+  --dur-md: 260ms;
+  --dur-lg: 420ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.22, 0.8, 0.3, 1);
+
   --radius: 14px;
   --radius-lg: 22px;
   --radius-pill: 999px;
@@ -88,6 +105,12 @@
 
     --danger: #e5917f;
     --ok: #7dbf9a;
+
+    /* Shadows carry almost no weight on a dark ground — depth there comes from
+       the border. Deepened and mostly relied on for the contact edge. */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30), 0 8px 20px -14px rgba(0, 0, 0, 0.50);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.34), 0 18px 40px -24px rgba(0, 0, 0, 0.58);
+    --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.40), 0 32px 64px -36px rgba(0, 0, 0, 0.66);
   }
 }
 
@@ -215,6 +238,7 @@ main { padding: 0 0 clamp(2rem, 5vw, 3.5rem); }
   display: inline-block;
   padding: 0.5rem 0;
 }
+.nav-links a { transition: color var(--dur-sm) var(--ease-out); }
 .nav-links a:hover { color: var(--ink); }
 .nav-links a.btn { padding: 0.62rem 1.25rem; }
 
@@ -233,9 +257,13 @@ button.btn, a.btn, button.primary, a.primary {
   background: var(--ink);
   color: var(--ground);
   cursor: pointer;
-  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition: opacity var(--dur-sm) var(--ease-out),
+              background var(--dur-sm) var(--ease-out),
+              color var(--dur-sm) var(--ease-out),
+              transform var(--dur-xs) var(--ease-out-soft);
 }
-button.btn:hover, a.btn:hover, button.primary:hover, a.primary:hover { opacity: 0.86; }
+button.btn:hover, a.btn:hover, button.primary:hover, a.primary:hover { opacity: 0.88; }
+button.btn:active, a.btn:active, button.primary:active, a.primary:active { transform: translateY(1px); }
 button.btn.btn-lg, a.btn.btn-lg { padding: 1rem 2rem; font-size: 1rem; }
 button.primary:disabled { opacity: 0.42; cursor: not-allowed; }
 
@@ -250,7 +278,8 @@ button.quiet, a.quiet {
   border-radius: var(--radius-pill);
   cursor: pointer;
 }
-button.quiet:hover, a.quiet:hover { border-color: var(--field-border); }
+button.quiet, a.quiet { transition: border-color var(--dur-sm) var(--ease-out), background var(--dur-sm) var(--ease-out); }
+button.quiet:hover, a.quiet:hover { border-color: var(--field-border); background: var(--surface-tint); }
 
 /* The CTAs are Links, not buttons wrapped in a Link (which is invalid HTML and
    a double tab stop). An anchor with a button class renders as the button. */
@@ -290,9 +319,18 @@ a.primary, a.quiet, a.btn {
   position: absolute;
   inset: -1px 0 0;
   z-index: -1;
+  /* A gradient mesh rather than a single wash. Several wide, low-opacity
+     radials at different positions read as light falling across the page;
+     one gradient reads as a coloured band. The final linear ramp keeps the
+     bottom edge warm so the hero dissolves into the ground instead of ending
+     on a line. Percentage sizes so it scales with the viewport rather than
+     bunching up on a phone. */
   background:
-    radial-gradient(90rem 34rem at 18% -10%, color-mix(in srgb, var(--accent) 52%, transparent), transparent 62%),
-    radial-gradient(70rem 30rem at 92% 4%, color-mix(in srgb, var(--accent-deep) 16%, transparent), transparent 60%);
+    radial-gradient(62% 42% at 88% 2%, rgba(250, 220, 167, 0.42) 0%, rgba(250, 220, 167, 0) 64%),
+    radial-gradient(120% 56% at 46% 12%, rgba(193, 233, 176, 0.78) 0%, rgba(201, 234, 200, 0.42) 38%, rgba(201, 234, 200, 0) 72%),
+    radial-gradient(85% 44% at 6% 42%, rgba(220, 240, 203, 0.62) 0%, rgba(220, 240, 203, 0) 68%),
+    radial-gradient(100% 48% at 80% 62%, rgba(176, 219, 193, 0.48) 0%, rgba(176, 219, 193, 0) 70%),
+    linear-gradient(178deg, rgba(253, 252, 247, 0) 40%, rgba(247, 244, 236, 0.7) 100%);
   box-shadow: 0 0 0 100vmax transparent;
   clip-path: inset(0 -100vmax);
 }
@@ -331,6 +369,13 @@ a.primary, a.quiet, a.btn {
 .cta-row { display: flex; align-items: center; gap: 0.75rem 1.25rem; flex-wrap: wrap; }
 .cta-note { font-size: 0.86rem; color: var(--ink-soft); }
 
+/* The hero's small text is the only text on the site sitting over the gradient
+   mesh rather than a flat surface. --ink-soft is tuned for the flat surfaces
+   and falls to 4.04:1 against the mesh's lime core; --ink-mid holds 5.16:1 at
+   the same point. Scoped here rather than darkening the global token, because
+   everywhere else --ink-soft is already correct. */
+.hero .eyebrow, .hero .cta-note { color: var(--ink-mid); }
+
 /* The product preview. A static, clearly-labelled illustration of what the
    free check returns — not a screenshot of anyone's real case. */
 .preview {
@@ -338,7 +383,7 @@ a.primary, a.quiet, a.btn {
   border: 1px solid var(--rule);
   border-radius: var(--radius-lg);
   padding: 1.15rem;
-  box-shadow: 0 24px 48px -28px rgba(11, 58, 51, 0.28);
+  box-shadow: var(--shadow-lg);
 }
 .preview-head {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -418,7 +463,11 @@ a.primary, a.quiet, a.btn {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-md) var(--ease-out),
+              transform var(--dur-md) var(--ease-out);
 }
+.trust > div:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .trust h3 { font-size: 1.14rem; }
 .trust p { font-size: 0.93rem; line-height: 1.6; color: var(--ink-mid); margin: 0; max-width: none; }
 
@@ -432,6 +481,7 @@ a.primary, a.quiet, a.btn {
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   padding: 1.6rem 1.6rem 1.7rem;
+  box-shadow: var(--shadow-sm);
 }
 @media (max-width: 40rem) {
   .flow li { grid-template-columns: 1fr; gap: 0.5rem; }
@@ -571,6 +621,7 @@ textarea { resize: vertical; }
   font-weight: 400;
   color: var(--ink);
 }
+.choice label { transition: border-color var(--dur-sm) var(--ease-out), background var(--dur-sm) var(--ease-out), color var(--dur-sm) var(--ease-out); }
 .choice label:has(input:checked) { border-color: var(--ink); background: var(--ink); color: var(--ground); }
 .choice input { accent-color: var(--accent-deep); }
 
@@ -587,6 +638,7 @@ textarea { resize: vertical; }
 
 .steps { display: flex; gap: 0.35rem; margin-bottom: 2rem; list-style: none; padding: 0; }
 .steps li { flex: 1; height: 4px; background: var(--rule); border-radius: var(--radius-pill); }
+.steps li { transition: background var(--dur-lg) var(--ease-out); }
 .steps li[data-done='true'] { background: var(--accent-deep); }
 
 .disclaimer {
@@ -640,7 +692,10 @@ textarea { resize: vertical; }
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   padding: 0 1.35rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-sm) var(--ease-out);
 }
+.faq[open] { box-shadow: var(--shadow-md); }
 .faq summary {
   cursor: pointer; padding: 1.15rem 2.25rem 1.15rem 0; position: relative;
   font-family: var(--display); font-size: 1.14rem;
@@ -665,7 +720,8 @@ textarea { resize: vertical; }
   border-radius: var(--radius);
   padding: 1.5rem 1.6rem;
 }
-.guide-card:hover { border-color: var(--field-border); }
+.guide-card { box-shadow: var(--shadow-sm); transition: box-shadow var(--dur-md) var(--ease-out), transform var(--dur-md) var(--ease-out), border-color var(--dur-sm) var(--ease-out); }
+.guide-card:hover { border-color: var(--field-border); box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .guide-card:hover h2 { color: var(--accent-deep); }
 .guide-card h2 { font-size: 1.2rem; margin: 0 0 0.5rem; max-width: 24ch; }
 .guide-card p { font-size: 0.92rem; color: var(--ink-mid); margin: 0 0 0.4rem; max-width: 42ch; }
@@ -749,6 +805,24 @@ a.card.as-card-link:hover { border-color: var(--field-border); }
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
+/* A quiet strip of reassurances directly under the hero, where the sceptical
+   question actually arrives. Facts with a source, not badges. */
+.trust-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem 2rem;
+  padding: 1.5rem 0 0;
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--rule);
+}
+.trust-strip div { display: flex; gap: 0.7rem; align-items: flex-start; }
+.trust-strip .tick { color: var(--accent-deep); flex: 0 0 auto; line-height: 1.5; }
+.trust-strip p {
+  margin: 0; font-size: 0.88rem; line-height: 1.5;
+  color: var(--ink-mid); max-width: 30ch;
+}
+.trust-strip strong { color: var(--ink); font-weight: 600; }
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
@@ -756,4 +830,9 @@ a.card.as-card-link:hover { border-color: var(--field-border); }
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
+  /* Transitions being instant is not enough — the hover lift itself is motion,
+     and someone who asked for less of it should not get a jumping card. */
+  .trust > div:hover, .guide-card:hover { transform: none !important; }
+  button.btn:active, a.btn:active,
+  button.primary:active, a.primary:active { transform: none !important; }
 }

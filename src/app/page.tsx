@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { FAQS } from '@/lib/faq';
 
 // A self-referencing canonical for the site's most important URL. Routed
 // directly (not through pageMeta) so the layout's title.default is kept and the
@@ -32,6 +33,26 @@ export const metadata: Metadata = {
  * institutions in it are named only as examples of the kinds of place a claim
  * goes to.
  */
+
+/**
+ * The questions worth answering before someone clicks, in the order a sceptical
+ * reader actually reaches them: what do I even do, what does it cost, why are
+ * you cheaper than the percentage people, is my data safe, are you lawyers,
+ * and what happens when the AI is wrong.
+ *
+ * Pulled from the same FAQS array that /faq renders, so an answer can never be
+ * edited in one place and go stale in the other. The FAQPage structured data
+ * stays on /faq alone — the same markup on two URLs is duplicate structured
+ * data, and /faq is the canonical home for it.
+ */
+const LANDING_FAQ_IDS = [
+  'where-to-start', 'cost', 'why-not-percentage',
+  'data-safety', 'is-this-legal-advice', 'ai-mistake',
+] as const;
+
+const LANDING_FAQS = LANDING_FAQ_IDS
+  .map((id) => FAQS.find((f) => f.id === id))
+  .filter((f): f is (typeof FAQS)[number] => Boolean(f));
 
 const PREVIEW = [
   { who: 'State Bank of India', what: 'Savings account', tone: 'ready', status: 'Forms ready' },
@@ -85,6 +106,21 @@ export default function Home() {
               held and who survives — and it names the exact form each institution wants.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="trust-strip" aria-label="How we handle your information">
+        <div>
+          <span className="tick" aria-hidden="true">&#10003;</span>
+          <p><strong>Read on your device.</strong> Scans are processed in your browser. The AI only ever sees placeholders.</p>
+        </div>
+        <div>
+          <span className="tick" aria-hidden="true">&#10003;</span>
+          <p><strong>A fixed fee, never a percentage.</strong> Quoted before you create an account, and refunded if we cannot help.</p>
+        </div>
+        <div>
+          <span className="tick" aria-hidden="true">&#10003;</span>
+          <p><strong>Deleted after 90 days.</strong> Encrypted at rest, never used to train any AI, and erasable by you at any time.</p>
         </div>
       </section>
 
@@ -233,6 +269,24 @@ export default function Home() {
             Until then, judge us on the free check. It costs you nothing and it will
             tell you within two minutes whether we understand your situation.
           </p>
+        </div>
+      </section>
+
+      <section className="sect">
+        <span className="eyebrow">Frequently asked</span>
+        <h2>The questions families ask us first</h2>
+        <p className="sub">
+          The awkward ones are here too. <Link href="/faq">All {FAQS.length} questions</Link>{' '}
+          if you want the rest.
+        </p>
+
+        <div className="faq-list">
+          {LANDING_FAQS.map((f) => (
+            <details className="faq" key={f.id}>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
         </div>
       </section>
 
