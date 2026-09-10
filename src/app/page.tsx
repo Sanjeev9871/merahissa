@@ -23,30 +23,68 @@ export const metadata: Metadata = {
  *   - The price is on the page before any commitment.
  *   - Limits are stated as prominently as capabilities — literally, here: the
  *     one full-bleed dark band on the site is the list of things we cannot do.
- *     Naming those builds more trust than any claim about what we can.
  *   - No testimonials, and we say why. Inventing them would be the first
  *     dishonest thing we did.
- *   - No urgency, no countdowns, no scarcity. Every growth pattern that works
- *     on a shopping site reads as predatory to someone who has just buried a
- *     parent.
+ *   - No urgency, no countdowns, no scarcity.
+ *
+ * The hero preview is a drawn illustration of what the free check returns, and
+ * it is labelled as one. It is not a screenshot of anyone's case, and the
+ * institutions in it are named only as examples of the kinds of place a claim
+ * goes to.
  */
+
+const PREVIEW = [
+  { who: 'State Bank of India', what: 'Savings account', tone: 'ready', status: 'Forms ready' },
+  { who: 'LIC of India', what: 'Life insurance', tone: 'ready', status: 'Forms ready' },
+  { who: 'EPFO', what: 'Provident fund', tone: 'ready', status: 'Forms ready' },
+  { who: 'CAMS / KFintech', what: 'Mutual funds', tone: 'ready', status: 'Forms ready' },
+  { who: 'Demat — NSDL', what: 'Shares', tone: 'court', status: 'Needs certificate' },
+] as const;
+
 export default function Home() {
   return (
     <>
-      <section className="hero">
-        <span className="eyebrow">Estate claim paperwork for Indian families</span>
-        <h1>
-          Nobody gave you <em>the whole list</em>.
-        </h1>
-        <p className="sub">
-          The bank wants a succession certificate. The insurer wants something else.
-          Answer six questions about your family and what they left, and we will tell
-          you exactly which documents each institution needs — and what the law says
-          each person inherits.
-        </p>
-        <div className="cta-row">
-          <Link href="/triage" className="btn btn-lg">Find out what my case needs</Link>
-          <span className="cta-note">Free &middot; no account &middot; about two minutes</span>
+      <section className="hero bleed">
+        <div className="hero-grid">
+          <div>
+            <span className="eyebrow">Estate claim paperwork for Indian families</span>
+            <h1>
+              Nobody gave you <em>the whole list</em>.
+            </h1>
+            <p className="sub">
+              The bank wants a succession certificate. The insurer wants something else.
+              Answer six questions about your family and what they left, and we will tell
+              you exactly which documents each institution needs — and what the law says
+              each person inherits.
+            </p>
+            <div className="cta-row">
+              <Link href="/triage" className="btn btn-lg">Find out what my case needs</Link>
+              <Link href="/examples" className="quiet">See a worked example</Link>
+            </div>
+            <p className="cta-note" style={{ marginTop: '1.25rem', maxWidth: '32ch' }}>
+              Free &middot; no account &middot; about two minutes. Nothing on that page is sent to us.
+            </p>
+          </div>
+
+          <div className="preview" aria-labelledby="preview-heading">
+            <div className="preview-head">
+              <span className="eyebrow" id="preview-heading">What the free check returns</span>
+              <span className="count">5 institutions</span>
+            </div>
+            {PREVIEW.map((row) => (
+              <div className="preview-row" key={row.who}>
+                <div>
+                  <div className="who">{row.who}</div>
+                  <div className="what">{row.what}</div>
+                </div>
+                <span className="chip" data-tone={row.tone}>{row.status}</span>
+              </div>
+            ))}
+            <p className="preview-foot">
+              An illustration, not a real case. Your own list depends on what your family
+              held and who survives — and it names the exact form each institution wants.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -117,7 +155,7 @@ export default function Home() {
 
         <ol className="flow">
           <li>
-            <span className="dot">1</span>
+            <span className="dot">01</span>
             <span className="ft"><h3>The free check</h3><span className="when">2 minutes</span></span>
             <p>
               Six questions. No name, no email, no account. You get the shares under
@@ -125,7 +163,7 @@ export default function Home() {
             </p>
           </li>
           <li>
-            <span className="dot">2</span>
+            <span className="dot">02</span>
             <span className="ft"><h3>Tell us the details</h3><span className="when">15 minutes</span></span>
             <p>
               Only now do we ask who you are. Names as they appear on documents, which
@@ -134,7 +172,7 @@ export default function Home() {
             </p>
           </li>
           <li>
-            <span className="dot">3</span>
+            <span className="dot">03</span>
             <span className="ft"><h3>Pay the fixed fee</h3><span className="when">one payment</span></span>
             <p>
               You already know the price from step one. If we then find we cannot
@@ -142,7 +180,7 @@ export default function Home() {
             </p>
           </li>
           <li>
-            <span className="dot">4</span>
+            <span className="dot">04</span>
             <span className="ft"><h3>We prepare, a person checks</h3><span className="when">1 working day</span></span>
             <p>
               Claim forms filled in, affidavits and indemnity bonds drafted for stamp
@@ -151,7 +189,7 @@ export default function Home() {
             </p>
           </li>
           <li>
-            <span className="dot">5</span>
+            <span className="dot">05</span>
             <span className="ft">
               <h3>You file, and we track it</h3>
               <span className="when" data-slow="yes">weeks to months</span>
@@ -198,12 +236,15 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="sect">
+      <section className="closing">
         <span className="eyebrow">Start here</span>
         <h2>Six questions. Nothing is sent to us, and nothing is saved.</h2>
-        <div className="cta-row" style={{ marginTop: '2rem' }}>
+        <p className="sub">
+          You can stop at any point, and you will still have the document list.
+        </p>
+        <div className="cta-row">
           <Link href="/triage" className="btn btn-lg">Find out what my case needs</Link>
-          <span className="cta-note">You can stop at any point</span>
+          <Link href="/contact" className="quiet">Ask us a question</Link>
         </div>
       </section>
     </>

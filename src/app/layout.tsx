@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Instrument_Serif, Inter } from 'next/font/google';
+import { Lora, Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { SITE, organizationJsonLd, websiteJsonLd, JsonLd } from '@/lib/seo';
@@ -15,12 +15,12 @@ export const dynamic = 'force-dynamic';
  * next/font downloads these at build time and serves them from our own origin,
  * which is the only reason they are usable at all: the CSP is `font-src 'self'`
  * and a runtime request to a font CDN would be blocked. Both declare a system
- * fallback in globals.css, so a build without network degrades to Palatino /
+ * fallback in globals.css, so a build without network degrades to Georgia /
  * Helvetica rather than to nothing.
  */
-const display = Instrument_Serif({
+const display = Lora({
   subsets: ['latin'],
-  weight: '400',
+  weight: ['400', '500'],
   style: ['normal', 'italic'],
   display: 'swap',
   variable: '--font-display',
@@ -68,8 +68,8 @@ export const viewport = {
   // Match the real page ground (--ground) so the mobile browser chrome does not
   // show a faint seam against the page.
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f4f1e8' },
-    { media: '(prefers-color-scheme: dark)', color: '#14130e' },
+    { media: '(prefers-color-scheme: light)', color: '#fdfcf8' },
+    { media: '(prefers-color-scheme: dark)', color: '#0c1512' },
   ],
 };
 
