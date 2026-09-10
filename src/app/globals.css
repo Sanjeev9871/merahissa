@@ -34,7 +34,7 @@
   --ink: #0b3a33;
   --ink-mid: #46635c;
   /* Secondary text, held above WCAG AA 4.5:1 on all the light surfaces. */
-  --ink-soft: #64796f;
+  --ink-soft: #5e7268;
   --rule: #e4e2d6;
   /* Resting form-control boundary, ~3:1 on the field per WCAG 1.4.11.
      Distinct from --rule, the low-contrast decorative divider. */
