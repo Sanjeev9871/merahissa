@@ -55,11 +55,12 @@ const LANDING_FAQS = LANDING_FAQ_IDS
   .filter((f): f is (typeof FAQS)[number] => Boolean(f));
 
 const PREVIEW = [
-  { who: 'State Bank of India', what: 'Savings account', tone: 'ready', status: 'Forms ready' },
-  { who: 'LIC of India', what: 'Life insurance', tone: 'ready', status: 'Forms ready' },
-  { who: 'EPFO', what: 'Provident fund', tone: 'ready', status: 'Forms ready' },
-  { who: 'CAMS / KFintech', what: 'Mutual funds', tone: 'ready', status: 'Forms ready' },
-  { who: 'Demat — NSDL', what: 'Shares', tone: 'court', status: 'Needs certificate' },
+  { who: 'State Bank of India', kind: 'Bank', tone: 'ready', status: 'Forms ready' },
+  { who: 'LIC of India', kind: 'Insurance', tone: 'ready', status: 'Forms ready' },
+  { who: 'EPFO', kind: 'Provident fund', tone: 'ready', status: 'Forms ready' },
+  { who: 'CAMS / KFintech', kind: 'Mutual funds', tone: 'ready', status: 'Forms ready' },
+  { who: 'HDFC Bank', kind: 'Fixed deposit', tone: 'ready', status: 'Forms ready' },
+  { who: 'Demat — NSDL', kind: 'Shares', tone: 'court', status: 'Court needed' },
 ] as const;
 
 export default function Home() {
@@ -90,20 +91,29 @@ export default function Home() {
           <div className="preview" aria-labelledby="preview-heading">
             <div className="preview-head">
               <span className="eyebrow" id="preview-heading">What the free check returns</span>
-              <span className="count">5 institutions</span>
+              <span className="count">6 institutions &middot; 1 needs a court</span>
             </div>
             {PREVIEW.map((row) => (
-              <div className="preview-row" key={row.who}>
-                <div>
-                  <div className="who">{row.who}</div>
-                  <div className="what">{row.what}</div>
-                </div>
-                <span className="chip" data-tone={row.tone}>{row.status}</span>
+              <div className="preview-row" data-tone={row.tone} key={row.who}>
+                <span className="dot" aria-hidden="true" />
+                <span className="who">{row.who}</span>
+                <span className="chips">
+                  <span className="chip">{row.kind}</span>
+                  <span className="chip" data-tone={row.tone}>{row.status}</span>
+                </span>
               </div>
             ))}
             <p className="preview-foot">
-              An illustration, not a real case. Your own list depends on what your family
-              held and who survives — and it names the exact form each institution wants.
+              <svg className="lock" aria-hidden="true" width="13" height="13" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" strokeWidth="2.2"
+                   strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <span>
+                An illustration, not a real case. Nothing on the free check is sent to us,
+                and your own list names the exact form each institution wants.
+              </span>
             </p>
           </div>
         </div>

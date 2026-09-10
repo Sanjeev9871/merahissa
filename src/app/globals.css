@@ -75,7 +75,11 @@
   --radius-lg: 22px;
   --radius-pill: 999px;
   --measure: 36rem;
-  --page: 74rem;
+  /* 82rem, not 75. .shell is border-box, so --page is the OUTER width and the
+     gutters eat into it: at 75rem the inner content column came out 1088px,
+     against the reference's 1200px. 1200 + two 3.5rem gutters = 82rem, which
+     lands the content grid on exactly 1200px and the copy column on 544px. */
+  --page: 82rem;
   --gutter: clamp(1.25rem, 5vw, 3.5rem);
 
   --display: var(--font-display), Lora, Georgia, 'Times New Roman', serif;
@@ -160,12 +164,12 @@ p { margin: 0 0 1.05rem; max-width: var(--measure); }
    button text, timings, field names, status chips. */
 .eyebrow {
   font-family: var(--text);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-soft);
-  margin: 0 0 1rem;
+  margin: 0 0 1.1rem;
   display: block;
 }
 
@@ -248,10 +252,10 @@ main { padding: 0 0 clamp(2rem, 5vw, 3.5rem); }
 
 button.btn, a.btn, button.primary, a.primary {
   font-family: var(--text);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0;
-  padding: 0.85rem 1.7rem;
+  padding: 0.875rem 1.625rem;
   border: 1px solid var(--ink);
   border-radius: var(--radius-pill);
   background: var(--ink);
@@ -264,17 +268,17 @@ button.btn, a.btn, button.primary, a.primary {
 }
 button.btn:hover, a.btn:hover, button.primary:hover, a.primary:hover { opacity: 0.88; }
 button.btn:active, a.btn:active, button.primary:active, a.primary:active { transform: translateY(1px); }
-button.btn.btn-lg, a.btn.btn-lg { padding: 1rem 2rem; font-size: 1rem; }
+button.btn.btn-lg, a.btn.btn-lg { padding: 0.95rem 1.75rem; font-size: 0.95rem; }
 button.primary:disabled { opacity: 0.42; cursor: not-allowed; }
 
 button.quiet, a.quiet {
   font-family: var(--text);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 600;
   background: var(--surface);
   border: 1px solid var(--rule);
   color: var(--ink);
-  padding: 0.85rem 1.5rem;
+  padding: 0.875rem 1.5rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
 }
@@ -340,84 +344,110 @@ a.primary, a.quiet, a.btn {
 
 .hero-grid {
   display: grid;
-  /* The left column has to hold both CTAs on one line at desktop widths; at
-     1fr they wrap and the second button reads as an afterthought. */
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: clamp(2rem, 4vw, 3.5rem);
+  /* 544 / 616 at 1200px, measured off the reference. The copy column is the
+     narrower of the two on purpose: it makes the display type wrap sooner and
+     stack into a taller block, which is what reads as "big". */
+  grid-template-columns: minmax(0, 0.883fr) minmax(0, 1fr);
+  gap: 2.5rem;
   align-items: center;
 }
 @media (max-width: 60rem) {
   .hero-grid { grid-template-columns: 1fr; }
 }
 
+/* Set entirely in the display italic. A roman headline with one italic phrase
+   reads as emphasis; the whole line in italic reads as a masthead, which is the
+   effect wanted here.
+   The max-width that used to sit here was ~14ch — narrower than the column
+   itself — so the type wrapped early and looked cramped no matter how large the
+   font-size was. The column is the only constraint it needs. */
 .hero h1 {
-  font-size: clamp(2.4rem, 5.6vw, 4rem);
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-  max-width: 14ch;
-  margin: 0 0 1.25rem;
+  font-size: clamp(2.35rem, 4.2vw, 3.75rem);
+  font-style: italic;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.55rem;
 }
 .hero h1 em { font-style: italic; color: var(--accent-deep); }
 .hero .sub {
-  font-size: clamp(1rem, 1.5vw, 1.14rem);
+  font-size: clamp(1rem, 1.25vw, 1.125rem);
   color: var(--ink-mid);
-  max-width: 44ch;
-  margin: 0 0 2rem;
+  max-width: 30rem;
+  margin: 0 0 2.1rem;
   line-height: 1.6;
 }
 
 .cta-row { display: flex; align-items: center; gap: 0.75rem 1.25rem; flex-wrap: wrap; }
 .cta-note { font-size: 0.86rem; color: var(--ink-soft); }
 
-/* The hero's small text is the only text on the site sitting over the gradient
-   mesh rather than a flat surface. --ink-soft is tuned for the flat surfaces
-   and falls to 4.04:1 against the mesh's lime core; --ink-mid holds 5.16:1 at
-   the same point. Scoped here rather than darkening the global token, because
-   everywhere else --ink-soft is already correct. */
-.hero .eyebrow, .hero .cta-note { color: var(--ink-mid); }
+/* Every piece of small text in the hero sits over the gradient mesh rather than
+   a flat surface, and an automated contrast pass cannot see that — it reads
+   background-color, and a mesh is background-image, so it measures the flat
+   ground underneath. Composited by hand, --ink-soft falls to 4.04:1 against the
+   mesh's lime core while --ink-mid holds 5.16:1. Promoted for the whole hero
+   rather than darkening the global token, which is already correct everywhere
+   the page is flat. */
+.hero .eyebrow,
+.hero .cta-note,
+.hero .preview-head .count,
+.hero .preview-foot { color: var(--ink-mid); }
 
-/* The product preview. A static, clearly-labelled illustration of what the
-   free check returns — not a screenshot of anyone's real case. */
-.preview {
-  background: var(--surface);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius-lg);
-  padding: 1.15rem;
-  box-shadow: var(--shadow-lg);
-}
+/* The product preview.
+ *
+ * A stack of translucent pills rather than one bordered box: each row floats on
+ * the hero's gradient, which is what stops the card reading as a screenshot
+ * pasted onto the page. The count sits outside and above, so the stack itself
+ * stays uninterrupted.
+ *
+ * Static and clearly labelled — an illustration of what the free check returns,
+ * not a screenshot of anyone's case.
+ */
+.preview { display: flex; flex-direction: column; gap: 0.4rem; }
+
 .preview-head {
   display: flex; align-items: baseline; justify-content: space-between;
-  gap: 1rem; padding: 0.25rem 0.5rem 0.9rem;
-  border-bottom: 1px solid var(--rule); margin-bottom: 0.35rem;
+  gap: 1rem; padding: 0 0.25rem 0.5rem;
 }
 .preview-head .eyebrow { margin: 0; }
-.preview-head .count { font-size: 0.78rem; color: var(--ink-soft); }
+.preview-head .count { font-size: 0.8rem; color: var(--ink-soft); white-space: nowrap; }
+
 .preview-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 0.55rem 1fr auto;
   align-items: center;
-  gap: 0.5rem 1rem;
-  padding: 0.7rem 0.5rem;
-  border-radius: 10px;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(6px);
 }
-.preview-row + .preview-row { border-top: 1px solid var(--rule); }
-.preview-row .who { font-size: 0.92rem; font-weight: 500; color: var(--ink); }
-.preview-row .what {
-  font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--ink-soft); margin-top: 0.15rem;
+.preview-row .dot {
+  width: 0.5rem; height: 0.5rem; border-radius: 50%;
+  background: var(--accent-deep);
 }
+.preview-row[data-tone='court'] .dot { background: var(--danger); }
+.preview-row .who {
+  font-size: 0.92rem; font-weight: 500; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.preview-row .chips { display: flex; gap: 0.4rem; align-items: center; }
+
 .chip {
-  font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em;
-  text-transform: uppercase; padding: 0.32rem 0.7rem;
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 0.28rem 0.6rem;
   border-radius: var(--radius-pill); white-space: nowrap;
   background: var(--surface-2); color: var(--ink-mid);
 }
 .chip[data-tone='ready'] { background: var(--accent); color: #0b3a33; }
-.chip[data-tone='court'] { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+.chip[data-tone='court'] { background: color-mix(in srgb, var(--danger) 16%, white); color: var(--danger); }
+
 .preview-foot {
-  font-size: 0.76rem; color: var(--ink-soft); line-height: 1.5;
-  padding: 0.9rem 0.5rem 0.15rem; border-top: 1px solid var(--rule); margin-top: 0.35rem;
+  display: flex; gap: 0.5rem; align-items: flex-start;
+  font-size: 0.78rem; color: var(--ink-soft); line-height: 1.5;
+  padding: 0.65rem 0.75rem 0; margin: 0; max-width: none;
 }
+.preview-foot .lock { flex: 0 0 auto; margin-top: 0.15rem; opacity: 0.75; }
 
 /* ---------------------------------------------------------------------------
    Sections
