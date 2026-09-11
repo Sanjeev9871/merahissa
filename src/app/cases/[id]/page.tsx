@@ -2,6 +2,10 @@ import { notFound } from 'next/navigation';
 import { supabaseServer } from '@/lib/supabase/server';
 import { computeShares, fractionToString, type Heir } from '@/lib/succession';
 import { tierFor, formatRupees } from '@/lib/payments';
+import {
+  requirementsFor, DOCUMENT_SOURCE,
+  type AssetFacts, type Requirement,
+} from '@/lib/requirements';
 import { statusLabel } from '@/lib/statusLabel';
 import { CaseActions } from './actions';
 
@@ -34,6 +38,46 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
   );
 
   const tier = tierFor((assets ?? []).length, Boolean(kase.advocate_referral_needed));
+
+  /**
+   * The document list, resolved per holding by the SAME engine that drives
+   * generation. Showing it before payment is the point: the landing page
+   * promises you see the answer before you pay, and until now this screen asked
+   * for money without ever naming what the money buys.
+   *
+   * Deriving it here rather than storing a copy means the list on screen cannot
+   * drift from the list actually produced — if a rule changes, both move.
+   */
+  const perAsset = (assets ?? []).map((a) => {
+    const result = requirementsFor({
+      id: a.id as string,
+      kind: a.kind as AssetFacts['kind'],
+      valueBand: a.value_band as AssetFacts['valueBand'],
+      hasNomination: a.has_nomination as boolean | null,
+    });
+    const split = (side: 'you' | 'us') =>
+      result.requirements.filter((r: Requirement) => DOCUMENT_SOURCE[r.code] === side);
+    return {
+      institution: a.institution as string,
+      mask: a.account_ref_mask as string | null,
+      result,
+      byUs: split('us'),
+      byYou: split('you'),
+    };
+  });
+
+  // Counted across holdings, de-duplicated: the death certificate is one
+  // certificate whether it is needed by one institution or six.
+  const uniq = (side: 'you' | 'us') =>
+    new Set(perAsset.flatMap((p) => (side === 'us' ? p.byUs : p.byYou)).map((r) => r.code)).size;
+  const weDraft = uniq('us');
+  const youBring = uniq('you');
+  // Two different reasons a case gets held, and they need different words: a
+  // rule past its review date is ours to re-verify, an asset kind with no rule
+  // at all is ours to prepare by hand. Saying "past its review date" about a
+  // PPF account would be plainly untrue.
+  const anyStale = perAsset.some((p) => p.result.stale);
+  const anyUnsupported = perAsset.some((p) => p.result.unsupported);
   const approved = (packs ?? []).find((p) => p.status === 'approved');
   const heirName = new Map((heirs ?? []).map((h) => [h.id as string, h.full_name as string]));
 
@@ -105,6 +149,68 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
           ))}
         </ul>
       </div>
+
+      {perAsset.length > 0 ? (
+        <div className="card">
+          <h2>What this claim needs</h2>
+          <p className="hint">
+            Worked out from the law and each institution&rsquo;s own rules, before you pay
+            anything. {weDraft > 0 ? (
+              <>We draft and fill <strong>{weDraft}</strong> of these for you; the{' '}
+              <strong>{youBring}</strong> marked <em>you obtain</em> are certificates only
+              you can get.</>
+            ) : null}
+          </p>
+
+          <ul className="doc-list">
+            {perAsset.map((p) => (
+              <li key={p.institution + (p.mask ?? '')}>
+                <h3>
+                  {p.institution}
+                  {p.mask ? <span className="hint"> &middot; {p.mask}</span> : null}
+                </h3>
+
+                {p.result.unsupported ? (
+                  <p className="hint">
+                    We prepare this one by hand rather than automatically, and will confirm
+                    the exact steps with you directly.
+                  </p>
+                ) : (
+                  <ul className="docs">
+                    {p.result.requirements.map((r) => (
+                      <li key={r.code} data-source={DOCUMENT_SOURCE[r.code]}>
+                        <span className="doc-label">{r.label}</span>
+                        <span className="doc-tags">
+                          {!r.mandatory ? <span className="chip">If asked</span> : null}
+                          <span className="chip" data-source={DOCUMENT_SOURCE[r.code]}>
+                            {DOCUMENT_SOURCE[r.code] === 'us' ? 'We prepare' : 'You obtain'}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {p.result.notes.map((note) => (
+                  <p key={note} className="hint">{note}</p>
+                ))}
+              </li>
+            ))}
+          </ul>
+
+          <p className="hint" style={{ marginBottom: 0 }}>
+            {anyStale
+              ? 'At least one rule here is past its review date, so this case is held for '
+                + 'a person to re-verify before anything is generated. '
+              : null}
+            {anyUnsupported
+              ? 'At least one holding has no automatic rule set and is prepared by hand. '
+              : null}
+            The filled forms, affidavits and covering letters themselves arrive after
+            payment, checked by a person first.
+          </p>
+        </div>
+      ) : null}
 
       <CaseActions
         caseId={id}

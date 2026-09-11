@@ -44,6 +44,44 @@ export type DocumentCode =
   | 'cancelled_cheque'
   | 'will_probate';
 
+/**
+ * Who actually obtains each document.
+ *
+ * The family has to be told this before they pay, because it is the difference
+ * between what they are buying and what they still have to go and fetch. The
+ * paid pack is everything marked 'us' — drafted, filled and checked. Everything
+ * marked 'you' is a certificate or proof only the holder can obtain, and no
+ * amount of money changes that.
+ *
+ * Typed as an exhaustive Record rather than a Set on purpose: adding a
+ * DocumentCode without deciding which side of the line it falls on will not
+ * compile, which is the only reliable way to stop the split going stale.
+ */
+export const DOCUMENT_SOURCE: Record<DocumentCode, 'you' | 'us'> = {
+  // Obtained by the family — a registrar, a court, a tahsildar, their own bank.
+  death_certificate: 'you',
+  claimant_kyc: 'you',
+  succession_certificate: 'you',
+  legal_heir_certificate: 'you',
+  cancelled_cheque: 'you',
+  will_probate: 'you',
+
+  // Drafted, filled and human-checked by us. This is the deliverable.
+  bank_transmission_form: 'us',
+  nominee_claim_form: 'us',
+  indemnity_bond: 'us',
+  affidavit_of_heirship: 'us',
+  noc_from_co_heirs: 'us',
+  surety_undertaking: 'us',
+  demat_trf: 'us',
+  iepf_form_5: 'us',
+  iepf_entitlement_letter: 'us',
+  mf_transmission_form: 'us',
+  insurance_claim_form: 'us',
+  epf_form_20: 'us',
+  epf_form_5if: 'us',
+};
+
 export interface Requirement {
   code: DocumentCode;
   label: string;

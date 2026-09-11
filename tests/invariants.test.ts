@@ -416,3 +416,50 @@ describe('staging and production stay separated', () => {
     expect(layout).toContain('env-banner');
   });
 });
+
+describe('a family sees what they are buying before they pay', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // The landing page's central promise is that you get the real document list
+  // before any money changes hands. The case screen asked for payment without
+  // naming what the payment produced, which made that promise true of the free
+  // check and false of the screen where it mattered most.
+  it('lists the required documents above the payment control', () => {
+    const page = flat('app/cases/[id]/page.tsx');
+    expect(page).toContain('What this claim needs');
+
+    const listAt = page.indexOf('What this claim needs');
+    const payAt = page.indexOf('priceLabel={formatRupees');
+    expect(listAt > 0 && payAt > listAt).toBe(true);
+  });
+
+  // Derived from the same engine that drives generation. A stored copy could
+  // say one thing on screen while the pack contained another.
+  it('derives that list from the generation engine, not a duplicate', () => {
+    const page = flat('app/cases/[id]/page.tsx');
+    expect(page).toContain('requirementsFor(');
+    expect(page).toContain("from '@/lib/requirements'");
+  });
+
+  // Telling someone we will "prepare their documents" while a third of the list
+  // is certificates only they can obtain is the kind of omission that reads as
+  // a bait and switch when it surfaces later.
+  it('says which documents the family still has to obtain themselves', () => {
+    const page = flat('app/cases/[id]/page.tsx');
+    expect(page).toContain('DOCUMENT_SOURCE');
+    expect(page).toContain('You obtain');
+    expect(page).toContain('We prepare');
+  });
+
+  // Every document code has to be on one side of that line, and the Record type
+  // is what enforces it — a Set would silently treat an unclassified code as
+  // "ours", which is the wrong way to fail.
+  it('classifies every document code exhaustively', () => {
+    const src = flat('lib/requirements.ts');
+    expect(src).toContain("DOCUMENT_SOURCE: Record<DocumentCode, 'you' | 'us'>");
+    expect(src).toContain("death_certificate: 'you'");
+    expect(src).toContain("succession_certificate: 'you'");
+    expect(src).toContain("affidavit_of_heirship: 'us'");
+  });
+});
