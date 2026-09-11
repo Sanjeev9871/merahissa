@@ -57,7 +57,7 @@ export type DocumentCode =
  * DocumentCode without deciding which side of the line it falls on will not
  * compile, which is the only reliable way to stop the split going stale.
  */
-export const DOCUMENT_SOURCE: Record<DocumentCode, 'you' | 'us'> = {
+export const DOCUMENT_SOURCE = {
   // Obtained by the family — a registrar, a court, a tahsildar, their own bank.
   death_certificate: 'you',
   claimant_kyc: 'you',
@@ -80,7 +80,23 @@ export const DOCUMENT_SOURCE: Record<DocumentCode, 'you' | 'us'> = {
   insurance_claim_form: 'us',
   epf_form_20: 'us',
   epf_form_5if: 'us',
-};
+} as const satisfies Record<DocumentCode, 'you' | 'us'>;
+
+/**
+ * Exactly the documents the family has to go and get themselves.
+ *
+ * Derived from DOCUMENT_SOURCE rather than written out again, so it cannot drift
+ * from it. `as const satisfies` above is what makes this possible: it keeps the
+ * literal 'you' / 'us' types for this lookup while still failing the build if a
+ * document code goes unclassified.
+ *
+ * The point of naming the subset is that obtaining.ts keys its how-to guides on
+ * it — so moving a document from 'us' to 'you' will not compile until somebody
+ * has written the steps for getting hold of it.
+ */
+export type SelfObtainedDocument = {
+  [K in DocumentCode]: (typeof DOCUMENT_SOURCE)[K] extends 'you' ? K : never;
+}[DocumentCode];
 
 export interface Requirement {
   code: DocumentCode;

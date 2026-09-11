@@ -457,9 +457,61 @@ describe('a family sees what they are buying before they pay', () => {
   // "ours", which is the wrong way to fail.
   it('classifies every document code exhaustively', () => {
     const src = flat('lib/requirements.ts');
-    expect(src).toContain("DOCUMENT_SOURCE: Record<DocumentCode, 'you' | 'us'>");
+    // `as const satisfies` rather than a plain annotation: it keeps the literal
+    // 'you' / 'us' types (which SelfObtainedDocument is derived from) while
+    // still failing the build on an unclassified code.
+    expect(src).toContain("as const satisfies Record<DocumentCode, 'you' | 'us'>");
     expect(src).toContain("death_certificate: 'you'");
     expect(src).toContain("succession_certificate: 'you'");
     expect(src).toContain("affidavit_of_heirship: 'us'");
+  });
+});
+
+describe('the documents a family must fetch come with instructions', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // "You obtain" is not an answer on its own. Where we cannot prepare a
+  // document, the least we owe someone is where to go and what to take.
+  it('gives a how-to for every document the family obtains itself', () => {
+    const page = flat('app/cases/[id]/page.tsx');
+    expect(page).toContain("from '@/lib/obtaining'");
+    expect(page).toContain('OBTAINING[r.code as SelfObtainedDocument]');
+    expect(page).toContain('how-toggle');
+  });
+
+  // The guides are keyed on the derived subset, so a document moving from 'us'
+  // to 'you' cannot ship without steps — it stops compiling first.
+  it('keys the guides on the derived self-obtained type', () => {
+    const src = flat('lib/obtaining.ts');
+    expect(src).toContain('Record<SelfObtainedDocument, ObtainGuide>');
+
+    const req = flat('lib/requirements.ts');
+    expect(req).toContain("as const satisfies Record<DocumentCode, 'you' | 'us'>");
+    expect(req).toContain('export type SelfObtainedDocument');
+  });
+
+  // Registration and revenue procedure is national in statute and local in
+  // practice. A guide that reads as one national process would send someone to
+  // the wrong office, so every entry carries its own caveat and the page prints
+  // the standing one.
+  it('states that the procedure varies, on every guide and on the page', () => {
+    const src = flat('lib/obtaining.ts');
+    const guides = src.split('varies:').length - 1;
+    const entries = src.split('where:').length - 1;
+    expect(guides).toBe(entries);
+
+    const page = flat('app/cases/[id]/page.tsx');
+    expect(page).toContain('general information');
+    expect(page).toContain('not legal advice');
+    expect(page).toContain('differ by state');
+  });
+
+  // The cheaper route has to be named where one exists. A family that spends
+  // six months and 3% of the estate on a succession certificate the bank never
+  // needed has been failed by this page, not served by it.
+  it('names the cheaper alternative to a succession certificate', () => {
+    const src = flat('lib/obtaining.ts');
+    expect(src).toContain('legal heir certificate instead');
   });
 });

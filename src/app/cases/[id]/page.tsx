@@ -4,8 +4,9 @@ import { computeShares, fractionToString, type Heir } from '@/lib/succession';
 import { tierFor, formatRupees } from '@/lib/payments';
 import {
   requirementsFor, DOCUMENT_SOURCE,
-  type AssetFacts, type Requirement,
+  type AssetFacts, type Requirement, type SelfObtainedDocument,
 } from '@/lib/requirements';
+import { OBTAINING } from '@/lib/obtaining';
 import { statusLabel } from '@/lib/statusLabel';
 import { CaseActions } from './actions';
 
@@ -177,17 +178,58 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
                   </p>
                 ) : (
                   <ul className="docs">
-                    {p.result.requirements.map((r) => (
-                      <li key={r.code} data-source={DOCUMENT_SOURCE[r.code]}>
-                        <span className="doc-label">{r.label}</span>
+                    {p.result.requirements.map((r) => {
+                      const source = DOCUMENT_SOURCE[r.code];
+                      const tags = (
                         <span className="doc-tags">
                           {!r.mandatory ? <span className="chip">If asked</span> : null}
-                          <span className="chip" data-source={DOCUMENT_SOURCE[r.code]}>
-                            {DOCUMENT_SOURCE[r.code] === 'us' ? 'We prepare' : 'You obtain'}
+                          <span className="chip" data-source={source}>
+                            {source === 'us' ? 'We prepare' : 'You obtain'}
                           </span>
                         </span>
-                      </li>
-                    ))}
+                      );
+
+                      // Anything we prepare needs no instructions — it arrives
+                      // done. Only the documents the family has to fetch carry a
+                      // how-to, and those rows are the only ones that open.
+                      if (source === 'us') {
+                        return (
+                          <li key={r.code} data-source={source}>
+                            <div className="doc-row">
+                              <span className="doc-label">{r.label}</span>
+                              {tags}
+                            </div>
+                          </li>
+                        );
+                      }
+
+                      const guide = OBTAINING[r.code as SelfObtainedDocument];
+                      return (
+                        <li key={r.code} data-source={source}>
+                          {/* <details>, not a JS disclosure: it works before
+                              hydration, is keyboard accessible for free, and
+                              find-in-page reaches a closed panel. */}
+                          <details className="how">
+                            <summary>
+                              <span className="doc-label">{r.label}</span>
+                              {tags}
+                              <span className="how-toggle">How?</span>
+                            </summary>
+                            <div className="how-body">
+                              <dl className="how-facts">
+                                <div><dt>Where</dt><dd>{guide.where}</dd></div>
+                                <div><dt>How long</dt><dd>{guide.howLong}</dd></div>
+                                <div><dt>Cost</dt><dd>{guide.cost}</dd></div>
+                              </dl>
+                              <ol className="how-steps">
+                                {guide.steps.map((step) => <li key={step}>{step}</li>)}
+                              </ol>
+                              <p className="hint" style={{ marginBottom: 0 }}>{guide.varies}</p>
+                            </div>
+                          </details>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
 
@@ -197,6 +239,14 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
               </li>
             ))}
           </ul>
+
+          {youBring > 0 ? (
+            <p className="hint">
+              The steps under each &ldquo;you obtain&rdquo; document are general information,
+              not legal advice. Offices, fees and forms differ by state, so confirm with the
+              issuing office or the institution before you travel.
+            </p>
+          ) : null}
 
           <p className="hint" style={{ marginBottom: 0 }}>
             {anyStale

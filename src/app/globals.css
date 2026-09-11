@@ -866,17 +866,56 @@ a.card.as-card-link:hover { border-color: var(--field-border); }
 
 .docs { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; }
 .docs > li {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 0.75rem 1rem; flex-wrap: wrap;
-  padding: 0.6rem 0;
   border-bottom: 1px solid var(--rule);
   font-size: 0.94rem;
 }
 .docs > li:last-child { border-bottom: none; }
-.docs .doc-label { color: var(--ink-mid); flex: 1 1 16rem; }
+
+/* One row layout, used by a plain div for documents we prepare and by a
+   <summary> for the ones the family fetches. Keeping the two identical is what
+   makes the list scan as a single list rather than two. */
+.doc-row, .docs summary {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 0.5rem 1rem; flex-wrap: wrap;
+  padding: 0.6rem 0;
+}
+.docs .doc-label { color: var(--ink-mid); flex: 1 1 14rem; }
 .docs > li[data-source='us'] .doc-label { color: var(--ink); }
-.doc-tags { display: flex; gap: 0.35rem; flex: 0 0 auto; }
+.doc-tags { display: flex; gap: 0.35rem; flex: 0 0 auto; align-items: center; }
 .doc-tags .chip[data-source='us'] { background: var(--accent); color: #0b3a33; }
+
+/* The how-to disclosure. The whole row is the control, so the affordance sits
+   where the eye already is rather than as a separate target to find. */
+.docs summary { cursor: pointer; list-style: none; }
+.docs summary::-webkit-details-marker { display: none; }
+.docs summary:hover .how-toggle { border-color: var(--ink); color: var(--ink); }
+.how-toggle {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; padding: 0.24rem 0.6rem;
+  border: 1px solid var(--field-border); border-radius: var(--radius-pill);
+  color: var(--ink-mid); white-space: nowrap;
+  transition: border-color var(--dur-sm) var(--ease-out), color var(--dur-sm) var(--ease-out);
+}
+.how-toggle::after { content: ' +'; }
+.how[open] .how-toggle::after { content: ' \2212'; }
+
+.how-body {
+  padding: 0.35rem 0 1.1rem;
+  display: grid; gap: 0.9rem;
+  border-left: 2px solid var(--accent);
+  padding-left: 1rem;
+  margin-bottom: 0.6rem;
+}
+.how-facts { margin: 0; display: grid; gap: 0.4rem; }
+.how-facts > div { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.how-facts dt {
+  flex: 0 0 5.5rem; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft);
+  padding-top: 0.15rem;
+}
+.how-facts dd { margin: 0; flex: 1 1 16rem; font-size: 0.9rem; color: var(--ink-mid); }
+.how-steps { margin: 0; padding-left: 1.15rem; display: grid; gap: 0.5rem; }
+.how-steps li { font-size: 0.9rem; line-height: 1.55; color: var(--ink-mid); }
 
 /* A quiet strip of reassurances directly under the hero, where the sceptical
    question actually arrives. Facts with a source, not badges. */
