@@ -198,7 +198,9 @@ main { padding: 0 0 clamp(2rem, 5vw, 3.5rem); }
    margin-inline: calc(50% - 50vw)` is avoided deliberately — 100vw includes the
    scrollbar, so it overhangs by ~15px on Windows and needs the whole page
    clipped to hide it. This version overflows nothing, so the text inside stays
-   on the shell's own left edge with no arithmetic to keep in step. */
+   on the shell's own left edge with no arithmetic to keep in step.
+   It only works for flat colours — a box-shadow cannot paint a gradient — so
+   the hero mesh below has to take a different route. */
 .bleed {
   box-shadow: 0 0 0 100vmax var(--bleed-color, var(--ground));
   clip-path: inset(0 -100vmax);
@@ -316,27 +318,44 @@ a.primary, a.quiet, a.btn {
   position: relative;
   padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(2.5rem, 6vw, 4.5rem);
 }
-/* A soft wash behind the hero, fading into the page ground. Painted with the
-   same clip-path technique as .bleed so it reaches both viewport edges. */
+/* The gradient mesh behind the hero.
+ *
+ * This has to reach both viewport edges. The .bleed box-shadow trick used
+ * everywhere else cannot do it — a box-shadow paints a flat colour, not a
+ * gradient — so this layer is genuinely stretched to the viewport with the
+ * classic left:50% / width:100vw / margin-left:-50vw centring.
+ *
+ * This is the one deliberate exception to the no-100vw rule above, and it is
+ * worth being precise about the cost rather than pretending there is none:
+ * 100vw includes the scrollbar, so the layer overhangs by about half a
+ * scrollbar on each side and document.scrollWidth reads ~8px over
+ * clientWidth. The `overflow-x: clip` on html means no scrollbar appears and
+ * the overhang is unreachable — it is a decorative layer with nothing in it to
+ * scroll to — so the cost is a diagnostic number, not a behaviour. The
+ * alternative, hanging the mesh off body::before to get an exactly
+ * viewport-wide box, would couple it to a hard-coded height that the hero
+ * outgrows on mobile. An unreachable 8px beats a gradient that stops halfway
+ * down the hero.
+ *
+ * Several wide, low-opacity radials at different positions read as light
+ * falling across the page; one gradient reads as a coloured band. The closing
+ * linear ramp keeps the bottom edge warm so the hero dissolves into the ground
+ * instead of ending on a line. */
 .hero::before {
   content: '';
   position: absolute;
-  inset: -1px 0 0;
+  top: -1px;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
   z-index: -1;
-  /* A gradient mesh rather than a single wash. Several wide, low-opacity
-     radials at different positions read as light falling across the page;
-     one gradient reads as a coloured band. The final linear ramp keeps the
-     bottom edge warm so the hero dissolves into the ground instead of ending
-     on a line. Percentage sizes so it scales with the viewport rather than
-     bunching up on a phone. */
   background:
     radial-gradient(62% 42% at 88% 2%, rgba(250, 220, 167, 0.42) 0%, rgba(250, 220, 167, 0) 64%),
     radial-gradient(120% 56% at 46% 12%, rgba(193, 233, 176, 0.78) 0%, rgba(201, 234, 200, 0.42) 38%, rgba(201, 234, 200, 0) 72%),
     radial-gradient(85% 44% at 6% 42%, rgba(220, 240, 203, 0.62) 0%, rgba(220, 240, 203, 0) 68%),
     radial-gradient(100% 48% at 80% 62%, rgba(176, 219, 193, 0.48) 0%, rgba(176, 219, 193, 0) 70%),
     linear-gradient(178deg, rgba(253, 252, 247, 0) 40%, rgba(247, 244, 236, 0.7) 100%);
-  box-shadow: 0 0 0 100vmax transparent;
-  clip-path: inset(0 -100vmax);
 }
 @media (prefers-color-scheme: dark) {
   .hero::before { opacity: 0.28; }
