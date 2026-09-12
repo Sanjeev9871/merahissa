@@ -191,13 +191,30 @@ export default function Home() {
       </section>
 
       <section className="sect">
-        <span className="eyebrow">How it works</span>
-        <h2>Five steps, and we have marked the slow one</h2>
-        <p className="sub">
-          Everyone else hides it. Prefer to see it rather than read it?{' '}
-          <Link href="/examples">Three worked examples</Link> show what a case looks like,
-          start to finish.
-        </p>
+        {/* Alt text describes what is in the frame and nothing more. Calling the
+            hands in a stock photograph "a family we helped" would be inventing a
+            customer, which this site has committed not to do — and would breach
+            the licence's no-implied-endorsement term into the bargain. */}
+        <div className="media" style={{ marginBottom: 'clamp(2rem, 4vw, 3rem)' }}>
+          <figure className="shot">
+            <img
+              src="/img/papers-in-order-1200.webp"
+              srcSet="/img/papers-in-order-600.webp 600w, /img/papers-in-order-1200.webp 1200w"
+              sizes="(max-width: 52rem) 100vw, 45vw"
+              width={1200} height={900} loading="lazy" decoding="async"
+              alt="A hand resting on a stack of document folders in soft daylight."
+            />
+          </figure>
+          <div>
+            <span className="eyebrow">How it works</span>
+            <h2>Five steps, and we have marked the slow one</h2>
+            <p className="sub" style={{ marginBottom: 0 }}>
+              Everyone else hides it. Prefer to see it rather than read it?{' '}
+              <Link href="/examples">Three worked examples</Link> show what a case looks
+              like, start to finish &mdash; and a short film of a finished pack.
+            </p>
+          </div>
+        </div>
 
         <ol className="flow">
           <li>

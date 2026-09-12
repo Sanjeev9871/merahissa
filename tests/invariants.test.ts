@@ -562,3 +562,69 @@ describe('the demo film stays first-party', () => {
     expect(page).toContain('illustrative estate');
   });
 });
+
+describe('photography does not invent customers', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // The Pexels licence forbids using imagery to imply endorsement by the people
+  // in it, and this site separately promises not to invent customers. Both land
+  // in the same place: alt text may describe what is in the frame, and may not
+  // claim the subject is a customer, an heir, or a bereaved family.
+  const FORBIDDEN = [
+    'our customer', 'a customer', 'client of', 'family we helped',
+    'heir who', 'bereaved family', 'satisfied', 'testimonial',
+  ];
+
+  const altTexts = () => {
+    const out: string[] = [];
+    for (const f of files) {
+      for (const m of f.source.matchAll(/alt="([^"]*)"/g)) out.push(m[1] ?? '');
+    }
+    return out;
+  };
+
+  it('describes what is in the frame, never who it is', () => {
+    const alts = altTexts();
+    expect(alts.length > 0).toBe(true);
+    for (const alt of alts) {
+      const lower = alt.toLowerCase();
+      for (const phrase of FORBIDDEN) {
+        expect(lower.includes(phrase)).toBe(false);
+      }
+    }
+  });
+
+  // A missing width/height is a layout shift, and a page that reflows under a
+  // grieving person mid-sentence is worse than a page with no picture on it.
+  it('reserves space for every image before it loads', () => {
+    for (const f of files) {
+      for (const tag of f.source.matchAll(/<img[\s\S]{0,600}?\/>/g)) {
+        const el = tag[0];
+        if (!el.includes('src=')) continue;
+        expect(el.includes('width=')).toBe(true);
+        expect(el.includes('height=')).toBe(true);
+      }
+    }
+  });
+
+  // Licensing has to be checkable by someone who did not write the code.
+  it('records the source and licence of every photograph', () => {
+    const imgDir = fileURLToPath(new URL('../public/img', import.meta.url));
+    const credits = readFileSync(join(imgDir, 'CREDITS.md'), 'utf8');
+    expect(credits).toContain('Pexels License');
+
+    // Derived from what is actually on disk rather than a hand-kept list, so
+    // dropping a new photograph into public/img without crediting it fails here
+    // instead of shipping unattributed.
+    const shipped = new Set(
+      readdirSync(imgDir)
+        .filter((f) => f.endsWith('.webp'))
+        .map((f) => f.replace(/-\d+\.webp$/, '')),
+    );
+    expect(shipped.size > 0).toBe(true);
+    for (const name of shipped) {
+      expect(credits).toContain(name);
+    }
+  });
+});
