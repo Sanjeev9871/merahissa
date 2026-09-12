@@ -41,6 +41,43 @@ export default function Examples() {
         permission. These examples exist only to show what we do.
       </div>
 
+      {/*
+        Self-hosted, deliberately. The CSP is `default-src 'self'` with a
+        frame-src limited to Razorpay, so a YouTube or Vimeo embed would be
+        blocked outright — and it would also put a third-party cookie on a page
+        belonging to a service whose whole argument is restraint with data.
+        800KB of H.264 on our own origin avoids both problems.
+
+        Not autoplaying: it is 36 seconds of someone else's estate paperwork, on
+        a page a grieving person reached deliberately. They can press play. It
+        also spares the data of anyone on a metered connection.
+
+        Silent by construction — no soundtrack, no narration — so there is
+        nothing to caption. Everything it shows is written out in the three
+        worked examples below, which is the text alternative.
+      */}
+      <figure className="demo">
+        <video
+          controls
+          preload="metadata"
+          playsInline
+          poster="/video/what-you-get-poster.jpg"
+          width={1280}
+          height={720}
+          aria-describedby="demo-caption"
+        >
+          <source src="/video/what-you-get.mp4" type="video/mp4" />
+          Your browser cannot play this video. The three worked examples below
+          describe the same case in full.
+        </video>
+        <figcaption id="demo-caption">
+          <strong>What a finished pack looks like</strong> &mdash; 36 seconds, no sound.
+          The shares, the pages and the checklists in this film were produced by the same
+          succession engine, requirements tables and PDF renderer that prepare a real
+          pack, from the illustrative estate described in the first example below.
+        </figcaption>
+      </figure>
+
       {/* ---------------------------------------------------------------- */}
       <section className="sect">
         <h2>Example 1 &mdash; a bank account with no nominee</h2>
