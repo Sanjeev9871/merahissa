@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { SITE } from '@/lib/seo';
 import { GUIDES } from '@/lib/guides';
+import { STATES } from '@/lib/states';
 
 /**
  * Sitemap. Only pages worth indexing appear here — the app screens (intake,
@@ -29,5 +30,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     })),
 
+    // The legal heir certificate is a state instrument, not a national one, so
+    // the state pages are what answer the question people are really asking.
+    // The hub sits alongside the guides; the individual states just below.
+    {
+      url: `${SITE.url}/legal-heir-certificate`,
+      lastModified: now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    },
+    ...STATES.map((s) => ({
+      url: `${SITE.url}/legal-heir-certificate/${s.slug}`,
+      lastModified: new Date(s.verifiedOn),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
   ];
 }

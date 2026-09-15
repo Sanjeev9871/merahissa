@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { GUIDES } from '@/lib/guides';
+import { STATES } from '@/lib/states';
 import { pageMeta, breadcrumbJsonLd, JsonLd } from '@/lib/seo';
 
 export const metadata = pageMeta({
@@ -34,6 +35,23 @@ export default function GuidesIndex() {
           alt="Open books stacked on a wooden table in warm light."
         />
       </figure>
+
+      <section className="sect">
+        <h2>Legal heir certificate, by state</h2>
+        <p className="sub">
+          This one is not a national process. The issuing officer, the portal, the form
+          number and even the name of the document change at the state border &mdash; so it
+          gets a page per state rather than one article pretending otherwise.
+        </p>
+        <ul>
+          {STATES.map((s) => (
+            <li key={s.slug}>
+              <Link href={`/legal-heir-certificate/${s.slug}`}>{s.name}</Link>
+              {' '}&mdash; {s.certificate}
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className="guide-list">
         {GUIDES.map((g) => (

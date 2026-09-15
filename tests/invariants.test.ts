@@ -4,6 +4,9 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SITE } from '../src/lib/site.ts';
+import { GUIDES } from '../src/lib/guides.ts';
+import { STATES, STATE_GUIDE_SLUG } from '../src/lib/states.ts';
+import { RBI_DECEASED_CLAIMS, THRESHOLD_CAVEAT } from '../src/lib/rbi-directions.ts';
 
 /**
  * Architectural invariants.
@@ -625,6 +628,160 @@ describe('photography does not invent customers', () => {
     expect(shipped.size > 0).toBe(true);
     for (const name of shipped) {
       expect(credits).toContain(name);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Search-facing content
+//
+// These pages are the only reason a stranger ever finds this service, and the
+// structured data on them is a set of claims made to Google. Both need to stay
+// honest as the copy changes, which is what this block is for.
+// ---------------------------------------------------------------------------
+
+describe('guide and state page metadata', () => {
+  it('keeps every title inside the length Google will render', () => {
+    // The Guide interface documents "under 60 characters". A title that
+    // truncates loses exactly the words we put at the end.
+    const long = [
+      ...GUIDES.map((g) => ({ what: `guide ${g.slug}`, title: g.title })),
+      ...STATES.map((s) => ({ what: `state ${s.slug}`, title: s.title })),
+    ].filter((t) => t.title.length > 60);
+
+    expect(long.map((t) => `${t.what}: ${t.title.length}`).join(', ')).toBe('');
+  });
+
+  it('gives every page a unique slug and canonical path', () => {
+    const guideSlugs = GUIDES.map((g) => g.slug);
+    const stateSlugs = STATES.map((s) => s.slug);
+    expect(new Set(guideSlugs).size).toBe(guideSlugs.length);
+    expect(new Set(stateSlugs).size).toBe(stateSlugs.length);
+
+    // The state pages live at /legal-heir-certificate/<state>, so a state slug
+    // colliding with the guide slug of the same name would be ambiguous.
+    expect(stateSlugs.some((s) => s === STATE_GUIDE_SLUG)).toBe(false);
+  });
+
+  it('points every guide at related guides that exist', () => {
+    const known = new Set(GUIDES.map((g) => g.slug));
+    const broken = GUIDES.flatMap((g) => g.related.filter((r) => !known.has(r)));
+    expect(broken.join(', ')).toBe('');
+  });
+});
+
+describe('FAQ structured data', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // Marked-up FAQ content has to be visible on the page. This repository has
+  // already had to delete one block of structured data — a generic HowTo whose
+  // steps appeared nowhere in the markup — so the rule here is that the JSON-LD
+  // and the visible section are rendered from the same array, never two copies.
+  it('renders guide FAQs visibly and marks up the same array', () => {
+    const page = flat('app/guides/[slug]/page.tsx');
+    expect(page).toContain("'@type': 'FAQPage'");
+    expect(page).toContain('guide.faqs.map');       // used for the JSON-LD
+    expect(page).toContain('<dl className="qa">');  // and rendered visibly
+  });
+
+  it('renders state FAQs from the same call that marks them up', () => {
+    const page = flat('app/legal-heir-certificate/[state]/page.tsx');
+    expect(page).toContain('const faqs = stateFaqs(s)');
+    expect(page).toContain("'@type': 'FAQPage'");
+    expect(page).toContain('faqs.map');
+    expect(page).toContain('<dl className="qa">');
+  });
+
+  it('never hides a marked-up answer behind a disclosure widget', () => {
+    // <details> collapses its content, which is exactly what the FAQ rich
+    // result guidance warns against. The accordion class is `faq`; the pages
+    // carrying FAQPage markup must use the always-visible `qa` list instead.
+    for (const rel of ['app/guides/[slug]/page.tsx',
+                       'app/legal-heir-certificate/[state]/page.tsx']) {
+      expect(flat(rel).includes('<details')).toBe(false);
+    }
+  });
+
+  it('asks and answers something on the highest-traffic guides', () => {
+    // Not every guide needs questions, but the ones we have deliberately
+    // targeted do — losing them silently would undo the work.
+    for (const slug of ['claim-bank-account-after-death', 'legal-heir-certificate',
+                        'succession-certificate-india']) {
+      const guide = GUIDES.find((g) => g.slug === slug)!;
+      expect((guide.faqs ?? []).length > 0).toBe(true);
+    }
+  });
+});
+
+describe('state pages', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // Same principle as obtaining.ts: Indian revenue procedure is local, and a
+  // page that reads as one uniform national process sends someone to the wrong
+  // office. Every state says what specifically is unreliable about its figures.
+  it('carries a concrete varies note and a verification date on every state', () => {
+    for (const s of STATES) {
+      expect(s.varies.length > 60).toBe(true);
+      expect(/^\d{4}-\d{2}-\d{2}$/.test(s.verifiedOn)).toBe(true);
+    }
+  });
+
+  it('shows the reader that cost and time are reported, not promised', () => {
+    const page = flat('app/legal-heir-certificate/[state]/page.tsx');
+    expect(page).toContain('Reported cost');
+    expect(page).toContain('Reported time');
+    expect(page).toContain('not figures the state publishes as a');
+    expect(page).toContain('{s.varies}');
+  });
+
+  it('sends people to the state portal over https', () => {
+    for (const s of STATES) {
+      expect(s.portal.url.startsWith('https://')).toBe(true);
+    }
+  });
+
+  it('lists every state page in the sitemap', () => {
+    const sitemap = flat('app/sitemap.ts');
+    expect(sitemap).toContain('/legal-heir-certificate');
+    expect(sitemap).toContain('STATES.map');
+  });
+});
+
+describe('the RBI deceased-claims figures', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // One regulatory fact, quoted in several places, that will change. It is
+  // defined once and carries its own citation and verification date so that a
+  // reviewer can check it rather than trust it.
+  it('keeps the threshold and its source in one place', () => {
+    const src = flat('lib/rbi-directions.ts');
+    expect(src).toContain('rbi.org.in');
+    expect(src).toContain('verifiedOn');
+    expect(RBI_DECEASED_CLAIMS.url.startsWith('https://www.rbi.org.in/')).toBe(true);
+    expect(/^\d{4}-\d{2}-\d{2}$/.test(RBI_DECEASED_CLAIMS.verifiedOn)).toBe(true);
+  });
+
+  it('never states the floor without saying a bank may set it higher', () => {
+    // The number alone reads as a guarantee of what your bank will do, and it
+    // is not one — it is a regulatory minimum.
+    expect(THRESHOLD_CAVEAT).toContain('floor');
+    expect(THRESHOLD_CAVEAT).toContain('higher');
+
+    const state = flat('app/legal-heir-certificate/[state]/page.tsx');
+    expect(state).toContain('THRESHOLD_CAVEAT');
+    expect(state).toContain('cannot be lower');
+  });
+
+  it('cites the directions wherever the figure appears in a guide', () => {
+    const withFigure = GUIDES.filter(
+      (g) => JSON.stringify(g).includes(RBI_DECEASED_CLAIMS.thresholdFloor.scheduledBank),
+    );
+    expect(withFigure.length > 0).toBe(true);
+    for (const g of withFigure) {
+      expect(JSON.stringify(g)).toContain('Settlement of Claims');
     }
   });
 });

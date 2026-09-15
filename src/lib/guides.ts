@@ -11,11 +11,38 @@
  * us is a success: they will tell someone else.
  */
 
+import { RBI_DECEASED_CLAIMS as RBI } from './rbi-directions.ts';
+
 export interface GuideSection { heading: string; body: string[] }
+
+/**
+ * A question asked on the search results page itself, answered here.
+ *
+ * These are taken from the "People also ask" box for the query each guide
+ * targets — which is Google stating, for free, what the people landing on this
+ * page still do not know. Answering each in roughly 40-60 words makes the page
+ * eligible for the FAQ rich result and gives an AI overview something concrete
+ * to quote.
+ *
+ * Plain text, no markup: the same string is rendered visibly on the page and
+ * used verbatim in the FAQPage JSON-LD. Google requires marked-up FAQ content
+ * to be visible, and this file has already lost one block of structured data —
+ * a generic HowTo — for describing steps the page never showed. One array,
+ * both jobs, so the two cannot drift apart.
+ */
+export interface GuideFaq { q: string; a: string }
 
 export interface Guide {
   slug: string;
-  /** The <title>. Under 60 characters so Google does not truncate it. */
+  /**
+   * The <title>. Under 60 characters so Google does not truncate it.
+   *
+   * Phrased the way the query is typed, not the way we would describe the page
+   * internally. Where a state or a form number is what people actually search
+   * for — REV-114, "Varisu", "family pension rules after death" — that string
+   * belongs at the front of the title, because matching the query is most of
+   * what a title element does.
+   */
   title: string;
   /** Meta description. 150-160 characters. */
   description: string;
@@ -24,6 +51,8 @@ export interface Guide {
   /** One-paragraph answer, before any detail. */
   answer: string;
   sections: GuideSection[];
+  /** Answers to the "People also ask" questions for this guide's query. */
+  faqs?: readonly GuideFaq[];
   updated: string;
   related: string[];
 }
@@ -52,14 +81,16 @@ export const GUIDES: readonly Guide[] = [
         heading: 'If there is no nominee and the balance is modest',
         body: [
           'Banks settle smaller balances without going near a court. You will typically need the death certificate, the bank\'s claim form for a deceased depositor, an affidavit of heirship, no-objection letters from every other legal heir, and an indemnity bond on stamp paper.',
-          'Some banks also want two sureties — people of means who countersign the indemnity. The threshold at which this kicks in differs by bank and is not published consistently, so ask the branch directly.',
+          `Under the ${RBI.name}, every bank must fix a threshold below which it settles on this basis, and that threshold cannot be lower than ${RBI.thresholdFloor.scheduledBank} at a scheduled bank or ${RBI.thresholdFloor.cooperativeBank} at a co-operative bank. Banks may set it higher, so the figure that applies to you is the one in your bank's own policy — but it cannot lawfully be below the floor. Banks had until ${RBI.complyBy} to comply.`,
+          `Those directions also stop a bank demanding third-party sureties for a claim under its threshold, which used to be a common obstacle — public sector banks routinely asked for two people of means to countersign the indemnity. If you are asked for sureties on a claim below the limit, ask the branch to point to the policy that requires it.`,
         ],
       },
       {
         heading: 'If there is no nominee and the balance is large',
         body: [
-          'Above its internal limit the bank will insist on a succession certificate under sections 370 to 390 of the Indian Succession Act. This is a civil court application, needs an advocate, and realistically takes six months to a year.',
-          'Some banks accept a legal heir certificate from the tahsildar instead, which is far quicker. Always ask whether they will, before you start a court application you may not need.',
+          'Above its threshold the bank can insist on a succession certificate under sections 370 to 390 of the Indian Succession Act. This is a civil court application, needs an advocate, and realistically takes six months to a year.',
+          'Some banks accept a legal heir certificate from the tahsildar instead, which is far quicker and costs a fraction as much. Always ask whether they will, in writing, before you start a court application you may not need.',
+          `One more thing worth knowing: the same directions require a bank to settle within ${RBI.settlementDays} calendar days of receiving all the required documents. That clock starts when the file is complete, not when you first walked in — which is exactly why a complete first submission matters so much.`,
         ],
       },
       {
@@ -68,6 +99,43 @@ export const GUIDES: readonly Guide[] = [
           'Almost every delay traces back to an incomplete first submission. The branch accepts the file, it travels to a regional processing centre, and three weeks later it comes back with one document missing.',
           'Submit to every institution in parallel rather than one after another. Each runs its own process and there is nothing to gain by waiting.',
         ],
+      },
+      {
+        heading: 'Can the account simply be emptied instead?',
+        body: [
+          'No, and trying is the one move that turns an administrative problem into a legal one. Once the bank is told of the death the account is frozen, and using the late person\'s debit card, cheques or net banking afterwards is a withdrawal you were not authorised to make — recoverable from you by the other heirs, whatever your relationship to the deceased.',
+          'A joint account with a survivorship clause is the exception, and only for the surviving holder. Even then, what survivorship gives is the right to operate the account. It does not decide who ultimately owns the money, which is still a question for the succession law that applies to the family.',
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: 'How can I claim my deceased parent\'s bank account?',
+        a: 'Start with the death certificate and the bank\'s own claim form for a deceased depositor. '
+          + 'If a nominee was registered, the nominee claims on the death certificate and identity proof alone. '
+          + 'If not, the heirs add an affidavit of heirship, no-objection letters from the heirs who are not '
+          + 'claiming, and an indemnity bond. Submit to every institution in parallel.',
+      },
+      {
+        q: 'Can I withdraw money from a deceased person\'s bank account?',
+        a: 'No. The account is frozen once the bank knows of the death, and using the card, cheques or net '
+          + 'banking afterwards is an unauthorised withdrawal the other heirs can recover from you. The only '
+          + 'lawful route is the bank\'s claim process. A surviving joint holder with a survivorship clause can '
+          + 'operate the account, but that does not settle who owns the money.',
+      },
+      {
+        q: 'Who can withdraw money from a deceased person\'s account?',
+        a: 'The registered nominee, a surviving joint holder where the account has a survivorship clause, or '
+          + 'the legal heirs once the bank settles the claim. A nominee who receives the money is a trustee, '
+          + 'not the owner: the Supreme Court held in Shakti Yezdani v Jayanand Salgaonkar (2023) that the '
+          + 'money still belongs to whoever the succession law says the heirs are.',
+      },
+      {
+        q: 'How long can a deceased person\'s bank account remain open?',
+        a: 'There is no deadline by which a family loses the money. An account with no customer-led '
+          + 'transaction becomes inoperative, and a balance left unclaimed for ten years is transferred to the '
+          + 'RBI\'s Depositor Education and Awareness Fund. The claim survives that transfer and can still be '
+          + 'traced and made, through the RBI\'s UDGAM portal.',
       },
     ],
     related: ['succession-certificate-india', 'nominee-vs-legal-heir'],
@@ -104,6 +172,29 @@ export const GUIDES: readonly Guide[] = [
           'A legal heir certificate is issued by a tahsildar or equivalent revenue officer and simply records who the surviving family members are. It is quick — often two to four weeks — and cheap, and is enough for pension transfer, provident fund claims and many bank settlements.',
           'A succession certificate is a court order authorising you to collect debts and securities. It carries far more weight and is what a bank falls back on when the sum is large or the family situation is unclear.',
         ],
+      },
+    ],
+    faqs: [
+      {
+        q: 'Can property be sold without a succession certificate?',
+        a: 'Usually yes, because a succession certificate does not cover immovable property at all. It '
+          + 'authorises the holder to collect debts and securities — bank balances, shares, deposits. '
+          + 'To sell inherited land or a house the heirs generally need the property mutated into their '
+          + 'names on a legal heir certificate, with every heir joining the sale deed.',
+      },
+      {
+        q: 'When is a succession certificate not required?',
+        a: 'Whenever the institution will settle without one. If a nominee is registered, it cannot be '
+          + `demanded at all. Where there is no nominee, the ${RBI.name} requires every bank to fix a `
+          + `threshold — no lower than ${RBI.thresholdFloor.scheduledBank} at a scheduled bank — below which `
+          + 'it settles on an indemnity and declarations instead.',
+      },
+      {
+        q: 'What does a succession certificate cost?',
+        a: 'The court fee is a percentage of the value of the assets claimed, set by each state\'s court '
+          + 'fees legislation and commonly in the region of two to three per cent, plus your advocate\'s '
+          + 'fee. On a large estate that is a substantial sum, which is why it is worth confirming that the '
+          + 'institution genuinely requires one before filing.',
       },
     ],
     related: ['claim-bank-account-after-death', 'legal-heir-certificate'],
@@ -225,11 +316,15 @@ export const GUIDES: readonly Guide[] = [
   },
   {
     slug: 'legal-heir-certificate',
-    title: 'Legal heir certificate: how to apply in India',
+    // Retitled to lead with the phrase people type. "Legal heir certificate" and
+    // "legal heir certificate online" are the high-volume forms of this query;
+    // "how to apply in India" was our phrasing of it, not theirs.
+    title: 'Legal heir certificate: apply online, documents, fees',
     description:
-      'What a legal heir certificate is, which claims it is enough for, and how to apply through the tahsildar or your state\'s e-district portal.',
+      'What a legal heir certificate proves, which claims it is accepted for, and how to apply '
+      + 'online through your state\'s portal or at the tahsildar\'s office. State-by-state detail included.',
     h1: 'How do I get a legal heir certificate?',
-    updated: '2026-08-22',
+    updated: '2026-09-15',
     answer:
       'You apply to the tahsildar or equivalent revenue officer for the area where the deceased lived, in person or through your state\'s e-district portal. '
       + 'It records who the surviving family members are, usually takes two to four weeks, and costs very little. '
@@ -255,6 +350,44 @@ export const GUIDES: readonly Guide[] = [
           'A revenue inspector or village officer verifies the family details locally, sometimes by visiting. The certificate is then issued naming each heir and their relationship.',
           'If an heir has been left off, object immediately. Correcting it later is considerably harder than getting it right at the verification stage.',
         ],
+      },
+      {
+        heading: 'It is a state document, and the state matters',
+        body: [
+          'There is no central legal heir certificate and no national form. It is issued under each state\'s own revenue administration, so the issuing officer, the portal, the form number and even the name of the document change at the state border.',
+          'Delhi does not issue a legal heir certificate at all — it issues a Surviving Member Certificate through the SDM. Karnataka issues a Surviving Family Member Certificate through Nadakacheri, plus a separate document called Vamsha Vruksha that families often apply for by mistake. Tamil Nadu lists it on e-Sevai under a service code, REV-114. Kerala issues it from the Village Office for claims inside the state and from the Taluk office for claims outside it, and the two are not interchangeable.',
+          'Asking for the wrong name at the right counter is one of the most common ways a family loses a fortnight. We have published the verified process for six states — see the state pages linked below.',
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: 'How long is a legal heir certificate valid?',
+        a: 'It does not expire. It records a fact — who survived the deceased — and that fact does not '
+          + 'change, so the certificate stays valid indefinitely. Individual institutions sometimes ask for '
+          + 'one issued recently, and some want a fresh original rather than a photocopy, so collect '
+          + 'several certified copies at the time of issue.',
+      },
+      {
+        q: 'Is a legal heir certificate enough for property transfer?',
+        a: 'For transferring a deceased person\'s immovable property into the heirs\' names in the revenue '
+          + 'record, it is usually the document the office wants, alongside the death certificate. It is not '
+          + 'a determination of ownership, so where the estate is disputed, or a will exists, the certificate '
+          + 'alone will not settle who takes what.',
+      },
+      {
+        q: 'Is a legal heir certificate mandatory for a succession certificate?',
+        a: 'No. A succession certificate is granted by a civil court on its own petition and does not '
+          + 'require a legal heir certificate first. In practice many families obtain the heir certificate '
+          + 'anyway, because it is cheap and fast and often removes the need for the court application '
+          + 'altogether. Ask the institution what it will accept before filing.',
+      },
+      {
+        q: 'What is a legal heir certificate called in my state?',
+        a: 'It depends. Tamil Nadu calls it a Varisu certificate and lists it as REV-114 on e-Sevai. '
+          + 'Karnataka issues a Surviving Family Member Certificate through Nadakacheri. Delhi issues a '
+          + 'Surviving Member Certificate through the SDM. Uttar Pradesh calls it Uttaradhikar Praman Patra. '
+          + 'Asking for the wrong name is a common reason families are turned away.',
       },
     ],
     related: ['succession-certificate-india', 'claim-bank-account-after-death'],
@@ -382,7 +515,8 @@ export const GUIDES: readonly Guide[] = [
   },
   {
     slug: 'affidavit-of-heirship-how-to-write',
-    title: 'Affidavit of heirship: what it is and what it contains',
+    // Searched far more often as "legal heir affidavit" than by its formal name.
+    title: 'Legal heir affidavit: format and what it must state',
     description:
       'What an affidavit of legal heirship is, exactly what it must state, who swears it, and the stamp-paper and notary formalities banks and funds expect in India.',
     h1: 'How do I write an affidavit of legal heirship?',
@@ -871,7 +1005,9 @@ export const GUIDES: readonly Guide[] = [
   },
   {
     slug: 'claim-family-pension-after-death',
-    title: 'How to claim family pension after a pensioner\'s death',
+    // "family pension rules after death of pensioner" is the phrase this is
+    // actually searched as, and by a wide margin. Leading with it.
+    title: 'Family pension rules after death of a pensioner',
     description:
       'Claiming family pension after the death of a government pensioner or employee in India: who is eligible, Form 14, the documents, and the separate EPS pension for private-sector employees.',
     h1: 'How do I claim family pension after my husband\'s death?',

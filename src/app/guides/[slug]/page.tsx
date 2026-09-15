@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { GUIDES, guideBySlug } from '@/lib/guides';
+import { STATES, STATE_GUIDE_SLUG } from '@/lib/states';
 import { pageMeta, breadcrumbJsonLd, JsonLd, SITE } from '@/lib/seo';
 
 /** Static generation: these are the pages that need to be fast for crawlers. */
@@ -45,6 +46,21 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           publisher: { '@id': `${SITE.url}/#organization` },
           mainEntityOfPage: `${SITE.url}/guides/${guide.slug}`,
         },
+        // FAQPage, only where the guide actually carries questions. Built from
+        // guide.faqs, which is the same array rendered visibly below — Google
+        // requires marked-up FAQ content to appear on the page, and generating
+        // both from one source is what keeps that true as the copy changes.
+        ...(guide.faqs?.length
+          ? [{
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: guide.faqs.map((f) => ({
+              '@type': 'Question',
+              name: f.q,
+              acceptedAnswer: { '@type': 'Answer', text: f.a },
+            })),
+          }]
+          : []),
       ]} />
 
       <nav className="crumbs" aria-label="Breadcrumb">
@@ -65,6 +81,43 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
             {s.body.map((p) => <p key={p.slice(0, 40)}>{p}</p>)}
           </section>
         ))}
+
+        {guide.slug === STATE_GUIDE_SLUG && (
+          <section className="sect">
+            <h2>Your state&rsquo;s process</h2>
+            <p className="sub">
+              The portal, the form and the name of the document all change at the state
+              border. These are verified against each state&rsquo;s own portal.
+            </p>
+            <ul>
+              {STATES.map((s) => (
+                <li key={s.slug}>
+                  <Link href={`/legal-heir-certificate/${s.slug}`}>
+                    Legal heir certificate in {s.name}
+                  </Link>
+                  {' '}&mdash; {s.certificate}, {s.portal.name}
+                </li>
+              ))}
+            </ul>
+            <p>
+              <Link href="/legal-heir-certificate">See all states</Link>
+            </p>
+          </section>
+        )}
+
+        {guide.faqs && guide.faqs.length > 0 && (
+          <section className="sect">
+            <h2>Common questions</h2>
+            <dl className="qa">
+              {guide.faqs.map((f) => (
+                <div key={f.q}>
+                  <dt>{f.q}</dt>
+                  <dd>{f.a}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
 
         <section className="sect">
           <h2>Find out what your case needs</h2>

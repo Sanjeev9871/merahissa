@@ -1017,3 +1017,45 @@ figure.shot img {
   button.btn:active, a.btn:active,
   button.primary:active, a.primary:active { transform: none !important; }
 }
+
+/* ---------------------------------------------------------------------------
+   State pages and inline Q&A
+
+   `.qa` is the definition-list Q&A rendered on guides and state pages. It is
+   deliberately NOT `.faq`, which is already the <details> accordion on /faq and
+   the home page — these answers are marked up as FAQPage structured data, and
+   Google requires that content to be visible, so they must not be collapsed
+   behind a disclosure widget.
+   --------------------------------------------------------------------------- */
+.facts {
+  margin: 1.25rem 0 0;
+  border-top: 1px solid var(--rule);
+  max-width: 62ch;
+}
+.facts > div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: 0 1.5rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.facts dt {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--ink-soft); padding-top: 0.15rem;
+}
+.facts dd { margin: 0; color: var(--ink-mid); line-height: 1.55; }
+.facts dd strong { color: var(--ink); font-weight: 600; }
+
+.qa { margin: 1.25rem 0 0; max-width: 62ch; }
+.qa > div { padding: 1.1rem 0; border-bottom: 1px solid var(--rule); }
+.qa > div:first-child { border-top: 1px solid var(--rule); }
+.qa dt {
+  font-family: var(--font-display, inherit);
+  font-size: 1.05rem; font-weight: 600; color: var(--ink);
+  line-height: 1.4; margin-bottom: 0.5rem;
+}
+.qa dd { margin: 0; color: var(--ink-mid); line-height: 1.6; }
+
+@media (max-width: 40rem) {
+  .facts > div { grid-template-columns: 1fr; gap: 0.3rem; }
+}
