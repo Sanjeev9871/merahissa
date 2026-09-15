@@ -785,3 +785,77 @@ describe('the RBI deceased-claims figures', () => {
     }
   });
 });
+
+describe('auth email templates', () => {
+  // These are the only two emails a person receives before they have an
+  // account, and they arrive when someone has recently had a death in the
+  // family. They are configured in the Supabase dashboard, so nothing else in
+  // this repository can catch a regression in them.
+  const templates = ['confirm-signup', 'magic-link'].map((name) => ({
+    name,
+    source: readFileSync(
+      fileURLToPath(new URL(`../supabase/templates/${name}.html`, import.meta.url)),
+      'utf8',
+    ),
+  }));
+
+  it('keeps the link Supabase substitutes, in the button and in the body', () => {
+    for (const t of templates) {
+      // Once in the VML button, once in the anchor, twice in the printed URL.
+      // Losing any of them makes the email a dead end for someone whose client
+      // strips buttons or whose scanner rewrote the link.
+      expect(t.source.split('{{ .ConfirmationURL }}').length - 1).toBe(4);
+    }
+  });
+
+  it('carries no trace of the platform that sends it', () => {
+    // The default template advertised Supabase and offered an opt-out link on a
+    // transactional email. Neither was ever ours to put in front of a family.
+    for (const t of templates) {
+      expect(/supabase/i.test(t.source)).toBe(false);
+      expect(/unsubscribe|opt out of these/i.test(t.source)).toBe(false);
+    }
+  });
+
+  it('states the same limit the rest of the site states', () => {
+    for (const t of templates) {
+      expect(t.source).toContain('not a law firm');
+      expect(t.source).toContain('not legal advice');
+    }
+  });
+
+  it('warns that the link is a session, not just a login', () => {
+    // Families share inboxes. A forwarded magic link hands a sibling the case
+    // and every document in it.
+    for (const t of templates) {
+      expect(t.source).toContain('do not forward');
+      expect(/ignore this email/i.test(t.source)).toBe(true);
+    }
+  });
+
+  it('survives the clients it will actually be opened in', () => {
+    for (const t of templates) {
+      // Outlook's Word renderer will not paint a background on an anchor, so
+      // the button needs VML behind a conditional comment or it vanishes.
+      expect(t.source).toContain('v:roundrect');
+      // No images at all: they are blocked by default in many clients and a
+      // logo that fails to load takes the branding with it.
+      expect(/<img\b/i.test(t.source)).toBe(false);
+      // Gmail clips a message past ~102KB and hides the end behind a link.
+      expect(t.source.length < 102_000).toBe(true);
+      // Inlined styles, because Outlook and several webmail clients drop <style>.
+      expect(t.source).toContain('style="margin:0');
+    }
+  });
+
+  it('keeps the two emails looking like the same sender', () => {
+    // Most people get one and then the other. A change of design between them
+    // reads as a phishing attempt, which on this subject matter is fatal.
+    const footer = 'J010, Tower B, Ground Floor, Jasola, New Delhi 110065, India';
+    for (const t of templates) expect(t.source).toContain(footer);
+
+    const [confirm, magic] = templates;
+    const shape = (s: string) => s.replace(/>[^<]*</g, '><');
+    expect(shape(confirm.source).length).toBe(shape(magic.source).length);
+  });
+});
