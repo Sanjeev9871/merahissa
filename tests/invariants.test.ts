@@ -7,6 +7,7 @@ import { SITE } from '../src/lib/site.ts';
 import { GUIDES } from '../src/lib/guides.ts';
 import { STATES, STATE_GUIDE_SLUG } from '../src/lib/states.ts';
 import { RBI_DECEASED_CLAIMS, THRESHOLD_CAVEAT } from '../src/lib/rbi-directions.ts';
+import { caseSchema } from '../src/lib/validation.ts';
 
 /**
  * Architectural invariants.
@@ -857,5 +858,37 @@ describe('auth email templates', () => {
     const shape = (name: string) =>
       templates.find((t) => t.name === name)!.source.replace(/>[^<]*</g, '><');
     expect(shape('confirm-signup').length).toBe(shape('magic-link').length);
+  });
+});
+
+describe('date of death validation', () => {
+  const dod = (value: string) => caseSchema.safeParse({
+    deceasedName: 'Test Name',
+    deceasedDateOfDeath: value,
+    regime: 'hindu',
+    heirs: [{ fullName: 'An Heir', relationship: 'spouse' }],
+    assets: [{ kind: 'bank_deposit', institution: 'State Bank of India' }],
+  }).success;
+
+  it('rejects a day that does not exist', () => {
+    // JavaScript rolls 30 February forward to 2 March rather than rejecting it,
+    // so this reaches Postgres as an invalid date and comes back a 500.
+    expect(dod('2021-02-30')).toBe(false);
+    expect(dod('2021-13-01')).toBe(false);
+    expect(dod('2023-02-29')).toBe(false);   // 2023 was not a leap year
+    expect(dod('2024-02-29')).toBe(true);    // 2024 was
+  });
+
+  it('rejects a year in the wrong century', () => {
+    // A typed year loses its leading digits easily, and the date is printed
+    // onto claim forms.
+    expect(dod('0201-12-12')).toBe(false);
+    expect(dod('1899-12-31')).toBe(false);
+    expect(dod('1900-01-01')).toBe(true);
+  });
+
+  it('still rejects the future and accepts an ordinary date', () => {
+    expect(dod('2099-01-01')).toBe(false);
+    expect(dod('2021-09-12')).toBe(true);
   });
 });

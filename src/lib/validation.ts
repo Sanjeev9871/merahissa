@@ -76,12 +76,38 @@ export const assetSchema = z.object({
   isJoint: z.boolean().default(false),
 });
 
+/**
+ * Whether a YYYY-MM-DD string names a day that actually exists.
+ *
+ * `new Date('2021-02-30')` does not throw; it returns 2 March. Round-tripping
+ * the parts back out is the only way to tell the difference.
+ */
+function isRealDate(value: string): boolean {
+  const [y, m, d] = value.split('-').map(Number);
+  if (!y || !m || !d) return false;
+  const parsed = new Date(Date.UTC(y, m - 1, d));
+  return parsed.getUTCFullYear() === y
+    && parsed.getUTCMonth() === m - 1
+    && parsed.getUTCDate() === d;
+}
+
 export const caseSchema = z.object({
   deceasedName: personName,
   deceasedDateOfDeath: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use the date picker.')
+    // The shape being right does not make the date real. "2021-02-30" matches
+    // the pattern, and JavaScript quietly rolls it forward to 2 March rather
+    // than rejecting it — but Postgres does reject it, so an impossible date
+    // reaches the database as a 500 and the family is told only that we could
+    // not save their case.
+    .refine(isRealDate, 'That date does not exist. Please check it.')
     .refine((d) => new Date(d) <= new Date(), 'That date is in the future.')
+    // A four-digit year passes the pattern whether it is 2021 or 0201, and a
+    // typed year lands in the wrong century easily. The date is printed onto
+    // claim forms, so a silent typo here becomes a document an institution
+    // rejects weeks later.
+    .refine((d) => d >= '1900-01-01', 'Please check the year.')
     .optional(),
   deceasedWasFemale: z.boolean().default(false),
   regime: z.enum(REGIMES),
