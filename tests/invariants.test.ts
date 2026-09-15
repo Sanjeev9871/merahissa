@@ -854,8 +854,8 @@ describe('auth email templates', () => {
     const footer = 'J010, Tower B, Ground Floor, Jasola, New Delhi 110065, India';
     for (const t of templates) expect(t.source).toContain(footer);
 
-    const [confirm, magic] = templates;
-    const shape = (s: string) => s.replace(/>[^<]*</g, '><');
-    expect(shape(confirm.source).length).toBe(shape(magic.source).length);
+    const shape = (name: string) =>
+      templates.find((t) => t.name === name)!.source.replace(/>[^<]*</g, '><');
+    expect(shape('confirm-signup').length).toBe(shape('magic-link').length);
   });
 });
