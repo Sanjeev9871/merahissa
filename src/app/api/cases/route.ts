@@ -6,9 +6,53 @@ import { rateLimit, rateLimitHeaders } from '@/lib/ratelimit';
 import { mask } from '@/lib/redaction';
 import { encryptPii } from '@/lib/crypto';
 import { audit } from '@/lib/audit';
+import { deployEnv } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+/**
+ * A save failure, with the reason attached everywhere except production.
+ *
+ * Every 500 from this route used to read the same on both ends: the family saw
+ * "We could not save your case", and the cause went to a server log. Debugging
+ * a staging failure therefore meant having access to the Vercel logs, and
+ * anyone without it was reduced to guessing which of a dozen writes broke.
+ *
+ * Outside production the underlying Postgres error travels with the response,
+ * so the failure identifies itself on the next reload. In production it does
+ * not: database error text names columns, constraints and policies, and that is
+ * a map of the schema handed to anyone who can trigger an error.
+ */
+function saveFailed(stage: string, error: unknown) {
+  console.error(`[cases] ${stage} failed`, error);
+
+  const body: Record<string, unknown> = { error: 'We could not save your case.' };
+  const e = error as
+    { message?: string; code?: string; details?: string; hint?: string } | null;
+
+  // 23503 is foreign_key_violation. On this route it almost always means the
+  // signed-in user has no `profiles` row, so `cases.owner_id` has nothing to
+  // point at — see migration 0005. Naming it here turns a generic 500 into an
+  // instruction.
+  if (e?.code === '23503') {
+    console.error('[cases] foreign key violation — the signed-in user most likely has '
+      + 'no profiles row. Migration 0005 backfills these; the auth callback now '
+      + 'upserts one on every sign-in.');
+  }
+
+  if (deployEnv() !== 'production') {
+    body.diagnostic = {
+      stage,
+      code: e?.code ?? null,
+      message: e?.message ?? null,
+      details: e?.details ?? null,
+      hint: e?.hint ?? null,
+    };
+  }
+
+  return NextResponse.json(body, { status: 500 });
+}
 
 /**
  * Create a case from the intake wizard.
@@ -69,8 +113,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error || !kase) {
-    console.error('[cases] insert failed', error);
-    return NextResponse.json({ error: 'We could not save your case.' }, { status: 500 });
+    return saveFailed('case insert', error);
   }
 
   const caseId = kase.id as string;
@@ -126,8 +169,8 @@ export async function POST(request: NextRequest) {
     // Partial writes leave a case that will generate a wrong pack. Roll back
     // by deleting the parent; the cascade removes whatever landed.
     await supabase.from('cases').delete().eq('id', caseId);
-    console.error('[cases] child insert failed', heirError ?? assetError);
-    return NextResponse.json({ error: 'We could not save your case.' }, { status: 500 });
+    return saveFailed(heirError ? 'heirs insert' : 'assets insert',
+      heirError ?? assetError);
   }
 
   await audit('case.create', {

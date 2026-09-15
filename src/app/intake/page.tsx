@@ -138,8 +138,37 @@ export default function Intake() {
       return;
     }
 
+    // A signed-out session and a rate limit are not server faults, and telling
+    // someone to "try again in a moment" when their session has expired sends
+    // them round the same loop until they give up.
+    if (res.status === 401) {
+      setErrors({
+        _form: 'Your sign-in link has expired. Please sign in again — nothing you '
+          + 'have entered here is lost.',
+      });
+      setSubmitting(false);
+      return;
+    }
+
+    if (res.status === 429) {
+      setErrors({ _form: 'That is a lot of attempts in a short time. Please wait a minute and try again.' });
+      setSubmitting(false);
+      return;
+    }
+
     if (!res.ok) {
-      setErrors({ _form: 'We could not save your case. Please try again in a moment.' });
+      // Outside production the route sends the underlying database error along
+      // with the failure, so the reason is on screen instead of in a log only
+      // some people can read. It is never present in production.
+      const body = await res.json().catch(() => ({}));
+      const d = body.diagnostic as
+        { stage?: string; code?: string; message?: string } | undefined;
+
+      setErrors({
+        _form: d
+          ? `We could not save your case. [${d.stage}${d.code ? ` · ${d.code}` : ''}] ${d.message ?? ''}`
+          : 'We could not save your case. Please try again in a moment.',
+      });
       setSubmitting(false);
       return;
     }
