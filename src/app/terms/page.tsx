@@ -14,7 +14,8 @@ export const metadata = pageMeta({
  *
  * The structure and every clause restate commitments the site already makes
  * (fixed fee shown before payment, refund where we cannot help, not a law firm,
- * human review, data handling per the privacy notice). Nothing here invents a
+ * automatic preparation with a hold for cases that need a person, data handling
+ * per the privacy notice). Nothing here invents a
  * new obligation. It still MUST be reviewed and finalised by a qualified
  * advocate before it is relied on — hence the visible notice below.
  */
@@ -35,8 +36,9 @@ export default function Terms() {
       <h2>2. What the service does &mdash; and does not</h2>
       <p>
         We work out which documents each institution requires, compute the statutory
-        shares, and prepare completed forms, affidavits and covering letters. A person
-        reviews every pack before it reaches you.
+        shares, and prepare completed forms, affidavits and covering letters. Packs are
+        prepared automatically and released to you as soon as they are ready. Where a
+        case cannot be prepared that way it is held and a person completes it.
       </p>
       <ul>
         <li>We are <strong>not a law firm</strong> and do not provide legal advice.</li>

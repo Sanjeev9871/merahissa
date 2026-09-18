@@ -163,7 +163,8 @@ export const FAQS: readonly Faq[] = [
     topic: 'trust',
     q: 'You use AI. What if it gets my inheritance share wrong?',
     a: 'It cannot, because AI does not calculate your shares. Those come from code that implements the statute directly, as exact fractions, with the section cited — and every result is checked to total exactly one before it can be used. '
-     + 'The AI only writes the covering prose, and a person at Mera Hissa reads every pack before it reaches you. If our templates are out of date for your bank, the case is held rather than sent.',
+     + 'The AI only writes the covering prose, and it is checked for unresolved placeholders before anything is released — if it produces one, the pack is held for a person rather than sent. '
+     + 'The same applies if the shares need an advocate or our templates are out of date for your bank. Everything else is prepared automatically and reaches you within minutes.',
   },
 ] as const;
 

@@ -148,7 +148,14 @@ describe('degraded cases still produce a usable pack', () => {
     expect(doc.pages.some((p) => p.title.startsWith('Checklist'))).toBe(false);
   });
 
-  it('still tells the reader a human approved the pack', () => {
-    expect(toPlainText(build({ narrative: null }))).toContain('reviewed and approved');
+  // Packs that render cleanly are now released without anyone approving them,
+  // so the pack must not claim otherwise — it is a document filed with a bank,
+  // and a false sentence on it is worse than a missing one. It has to say what
+  // actually happened and tell the reader to check it.
+  it('tells the reader the pack was prepared automatically, and to check it', () => {
+    const text = toPlainText(build({ narrative: null }));
+    expect(text).toContain('prepared automatically');
+    expect(text).toContain('check the');
+    expect(text).not.toContain('reviewed and approved');
   });
 });

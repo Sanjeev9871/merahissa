@@ -180,11 +180,11 @@ export default function Home() {
             </p>
           </div>
           <div>
-            <h3>A person checks every pack</h3>
+            <h3>Held rather than guessed</h3>
             <p>
-              Software drafts it; a human reads it before it reaches you. If our
-              templates are out of date for your bank, the case is held rather than
-              sent.
+              Your pack is prepared automatically and is ready within minutes. But if
+              the shares need an advocate, or our templates are out of date for your
+              bank, the case is held for a person instead of being sent.
             </p>
           </div>
         </div>

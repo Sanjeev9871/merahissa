@@ -934,3 +934,50 @@ describe('the money path', () => {
     }
   });
 });
+
+describe('delivery after payment', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  it('releases a cleanly rendered pack without an approval step', () => {
+    const src = flat('app/api/cases/[id]/generate/route.ts');
+    expect(src).toContain("const deliverable = result.status === 'ready_for_review' && Boolean(storagePath)");
+    expect(src).toContain("status: deliverable ? 'approved' : 'queued'");
+    expect(src).toContain("status: deliverable ? 'delivered' : 'in_review'");
+  });
+
+  it('still refuses to release a pack that was held', () => {
+    // A held pack is never rendered, so storagePath is null and there is no
+    // file to hand over. `deliverable` requires both, which is what keeps a
+    // case with unresolved placeholders or advocate-only shares off the
+    // download route rather than sending a family a broken document.
+    const src = flat('app/api/cases/[id]/generate/route.ts');
+    expect(src).toContain("result.status === 'ready_for_review' && result.narrative");
+
+    // And the download route still gates on approval, so 'queued' cannot leak.
+    expect(flat('app/api/packs/[id]/download/route.ts')).toContain("pack.status !== 'approved'");
+  });
+
+  it('starts preparing as soon as the case is paid, without being asked', () => {
+    const src = flat('app/cases/[id]/actions.tsx');
+    expect(src).toContain('startedGenerating');
+    expect(src).toContain("status !== 'paid'");
+    expect(src).toContain('void generate()');
+  });
+
+  // The site told families a person checked every pack. That stopped being true
+  // the moment packs were released automatically, and it was said on the home
+  // page, in the terms, in the privacy notice and — worst — printed inside the
+  // PDF handed to a bank. A false claim on a document filed with an institution
+  // is worse than no claim at all.
+  it('never claims a human reviewed a pack that nobody reviewed', () => {
+    const claims = [
+      'checks every pack', 'reads every pack', 'reviews every pack',
+      'human reads it', 'reviewed and approved',
+    ];
+    const offenders = files.filter(
+      (f) => claims.some((c) => f.source.includes(c)),
+    );
+    expect(offenders.map((f) => f.rel)).toEqual([]);
+  });
+});

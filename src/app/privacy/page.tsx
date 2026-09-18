@@ -118,7 +118,7 @@ export default function Privacy() {
         only on our instructions and only to run this service:
       </p>
       <ul>
-        <li>The Mera Hissa reviewer who checks your pack before it reaches you.</li>
+        <li>A Mera Hissa reviewer, where your case is held for manual preparation rather than prepared automatically.</li>
         <li><strong>Supabase</strong> &mdash; hosts the database, the file storage, and sends your sign-in link by email.</li>
         <li>
           <strong>Vercel</strong> &mdash; hosts and serves the website, and counts page

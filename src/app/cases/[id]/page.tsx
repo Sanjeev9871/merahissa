@@ -105,8 +105,9 @@ export default async function CaseDetail({ params }: { params: Promise<{ id: str
         <div className="card">
           <h2>Your documents are ready</h2>
           <p>
-            A person at Mera Hissa has checked this pack. Print the affidavit and indemnity
-            bond on stamp paper of the value your state requires.
+            Check the names, dates and account numbers against your own documents
+            before you file anything. Print the affidavit and indemnity bond on stamp
+            paper of the value your state requires.
           </p>
           <a className="primary" href={`/api/packs/${approved.id}/download`}>
             Download the pack

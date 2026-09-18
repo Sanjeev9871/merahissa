@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface RazorpayCallback {
@@ -34,6 +34,24 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
   const [error, setError] = useState('');
   const [paidPending, setPaidPending] = useState(false);
   const [confirmText, setConfirmText] = useState('');
+
+  // A case sitting at 'paid' has cleared the only gate there is, so prepare it
+  // as soon as the page is open rather than waiting to be asked. This is what
+  // catches the family who paid and then closed the tab before anything was
+  // generated: they come back, and it is already being made.
+  //
+  // The ref, not the state, is the guard — status only changes after a refresh,
+  // and without it a slow generate would be started again on every re-render.
+  const startedGenerating = useRef(false);
+
+  useEffect(() => {
+    if (deleteOnly || status !== 'paid' || startedGenerating.current) return;
+    startedGenerating.current = true;
+    void generate();
+    // `generate` is a hoisted declaration in this component and is intentionally
+    // not a dependency: re-running this effect is exactly what the ref prevents.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, deleteOnly]);
 
   async function pay() {
     setBusy(true); setError('');
@@ -115,9 +133,11 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
       });
 
       if (res.ok) {
-        setBusy(false);
+        // Straight on to preparing the documents. Payment is the only gate, so
+        // making someone find and press a second button afterwards just adds a
+        // step where a family can close the tab and receive nothing.
         setPaidPending(false);
-        router.refresh();
+        await generate();
         return;
       }
 
@@ -206,20 +226,36 @@ export function CaseActions({ caseId, status, tierLabel, priceLabel, deleteOnly 
 
       {status === 'paid' && (
         <>
-          <h2>Ready to prepare</h2>
-          <p>Your payment has come through. This takes a minute or two.</p>
-          <button type="button" className="primary" disabled={busy} onClick={generate}>
-            {busy ? 'Preparing…' : 'Prepare my documents'}
+          <h2>Preparing your documents</h2>
+          <p>
+            Your payment has come through and we are putting the pack together now.
+            This takes a minute or two &mdash; the page will update on its own.
+          </p>
+          {/* Only reachable if the automatic attempt failed, which is why it is
+              quiet rather than the main action. */}
+          <button type="button" className="quiet" disabled={busy} onClick={generate}>
+            {busy ? 'Preparing…' : 'Try again'}
           </button>
         </>
       )}
 
-      {(status === 'generating' || status === 'in_review') && (
+      {status === 'generating' && (
+        <>
+          <h2>Preparing your documents</h2>
+          <p>This takes a minute or two. The page will update on its own.</p>
+        </>
+      )}
+
+      {/* Reached only when the pack could not be prepared automatically — an
+          unresolved placeholder, a share computation that needs an advocate, a
+          rule set past its review date. Those cases genuinely need a person. */}
+      {status === 'in_review' && (
         <>
           <h2>We are checking a few things</h2>
           <p>
-            Someone at Mera Hissa is reviewing your pack before it comes to you. We will
-            email you when it is ready &mdash; usually within one working day.
+            Your case needs a second look before the documents are ready &mdash; usually
+            because something about it does not fit the standard pattern. Someone at
+            Mera Hissa is on it, and we will be in touch within one working day.
           </p>
         </>
       )}

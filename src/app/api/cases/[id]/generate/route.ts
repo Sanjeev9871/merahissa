@@ -48,10 +48,16 @@ function decryptRef(ciphertext: string | null): string | null {
 /**
  * Generate a pack.
  *
- * Every path through this route ends with the pack in the review queue. There
- * is no branch that delivers to a family directly — `status` is either
- * 'queued' (held, needs work) or 'generated' (ready for a human to approve).
- * Approval is a separate, admin-only action.
+ * A pack that renders cleanly is released to the family immediately: the pack
+ * row is written as 'approved' and the case moves to 'delivered', with no
+ * approval step in between. Payment is the only gate.
+ *
+ * What still stops a pack is the pipeline, not a person's calendar. Unresolved
+ * placeholders, a share computation that needs an advocate, a rule set past its
+ * review date or a failed render all produce status 'held', and a held pack is
+ * never rendered at all — so there is no file to release even in principle. Those
+ * land at 'queued' with the case 'in_review', which is the only thing the admin
+ * queue now holds.
  */
 export async function POST(
   _request: NextRequest,
@@ -318,19 +324,24 @@ export async function POST(
     }
   }
 
+  // Rendered and unheld: everything needed to hand the family a file.
+  const deliverable = result.status === 'ready_for_review' && Boolean(storagePath);
+
   await db
     .from('packs')
     .insert({
       case_id: id,
       version,
 
-      // 'generated' still means "awaiting human approval". Nothing here sets
-      // 'approved' — that is only ever a person, in the admin queue.
-      status:
-        result.status === 'ready_for_review' &&
-          storagePath
-          ? 'generated'
-          : 'queued',
+      // A pack that rendered cleanly is released to the family immediately.
+      //
+      // There is no approval queue in the middle any more. What still holds a
+      // pack is the pipeline itself: unresolved placeholders, a share
+      // computation that needs an advocate, a stale rule set, a render that
+      // failed. A held pack is never rendered, so there is no file to release
+      // even in principle — `storagePath` is null and the only honest thing to
+      // do is put it in front of a person.
+      status: deliverable ? 'approved' : 'queued',
 
       template_manifest: result.manifest,
 
@@ -345,7 +356,7 @@ export async function POST(
 
   await db
     .from('cases')
-    .update({ status: 'in_review' } as never)
+    .update({ status: deliverable ? 'delivered' : 'in_review' } as never)
     .eq('id', id);
 
   await audit('pack.generate', {

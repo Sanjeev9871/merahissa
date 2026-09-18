@@ -435,8 +435,9 @@ export default function Intake() {
             </ul>
 
             <div className="notice">
-              We will work out what each institution needs and prepare the documents.
-              A person at Mera Hissa checks every pack before it reaches you.
+              We will work out what each institution needs and prepare the documents,
+              usually within a couple of minutes of payment. If your case does not fit
+              the standard pattern we hold it for a person rather than send it.
             </div>
           </>
         )}

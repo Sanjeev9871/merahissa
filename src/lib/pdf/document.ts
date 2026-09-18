@@ -211,8 +211,11 @@ export function buildPackDocument(opts: {
       },
       {
         kind: 'para',
-        text: 'A person at Mera Hissa reviewed and approved this pack before it was sent '
-          + 'to you. If anything here does not match your situation, tell us and we '
+        text: 'This pack was prepared automatically from the details you gave us, using '
+          + 'the rule sets listed above. Where a case does not fit the standard pattern '
+          + 'it is held for a person at Mera Hissa rather than released. Please check the '
+          + 'names, dates and account numbers against your own documents before you file '
+          + 'anything. If something here does not match your situation, tell us and we '
           + 'will correct it at no charge.',
       },
     ],
