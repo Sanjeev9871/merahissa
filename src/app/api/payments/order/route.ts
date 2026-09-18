@@ -148,17 +148,54 @@ export async function POST(request: NextRequest) {
     status: 'created',
   };
 
-  await supabaseAdmin()
+  const { error: paymentError } = await supabaseAdmin()
     .from('payments')
     .insert(payment as never);
+
+  // STOP HERE if that failed, and do not hand the order id back.
+  //
+  // This row is the only record that the order exists and what it is for.
+  // Razorpay's checkout will happily take the family's money against an order
+  // id whether or not we wrote anything, and /api/payments/verify looks the
+  // payment up by that id — so if the insert fails and we return the order
+  // anyway, the sequence is: they pay, we cannot find the order, verify
+  // answers 404, and a real payment sits against a case still marked unpaid.
+  //
+  // The error was previously discarded, which is exactly how that happened.
+  // Abandoning an unpaid Razorpay order costs nothing; taking money we have no
+  // record of costs a family their trust at the worst possible moment.
+  if (paymentError) {
+    console.error('[pay-order] could not record the order — refusing to start '
+      + 'checkout, because a payment made against an unrecorded order cannot be '
+      + 'verified', paymentError);
+
+    await audit('payment.verified', {
+      actorId: user.id,
+      caseId: kase.id as string,
+      detail: { outcome: 'order_not_recorded', tier: spec.id },
+    });
+
+    return NextResponse.json(
+      { error: 'We could not start the payment. Please try again in a moment.' },
+      { status: 500 },
+    );
+  }
 
   // Ownership was already proven by the user-client read above; the status
   // transition itself goes through the service role because the family has no
   // UPDATE privilege on public.cases (migration 0003).
-  await supabaseAdmin()
+  //
+  // Not fatal if it fails: the payment row is written, so the money is
+  // recoverable and the webhook will still reconcile. Worth knowing about
+  // though, because the case will look unpaid on screen for longer than it is.
+  const { error: statusError } = await supabaseAdmin()
     .from('cases')
     .update({ status: 'awaiting_payment' } as never)
     .eq('id', kase.id);
+
+  if (statusError) {
+    console.error('[pay-order] order recorded but case status not advanced', statusError);
+  }
 
   await audit('payment.verified', {
     actorId: user.id,

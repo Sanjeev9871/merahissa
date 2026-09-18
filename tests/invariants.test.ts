@@ -892,3 +892,45 @@ describe('date of death validation', () => {
     expect(dod('2021-09-12')).toBe(true);
   });
 });
+
+describe('the money path', () => {
+  const flat = (rel: string) =>
+    files.find((f) => f.rel.endsWith(rel))!.source.replace(/\s+/g, ' ');
+
+  // The payments row is the only record that an order exists and what it is
+  // for. Razorpay will take a family's money against an order id whether or not
+  // we wrote anything, and /api/payments/verify looks the payment up by that
+  // id — so an unchecked insert here means: they pay, verify answers 404, and
+  // a real payment sits against a case still marked unpaid. That happened.
+  it('never returns an order id it failed to record', () => {
+    const src = flat('app/api/payments/order/route.ts');
+
+    expect(src).toContain('const { error: paymentError }');
+    expect(src).toContain('if (paymentError)');
+
+    // The guard has to come before the order id is handed to the browser, or
+    // checking the error accomplishes nothing.
+    const guard = src.indexOf('if (paymentError)');
+    const handover = src.indexOf('orderId: order.id');
+    expect(guard >= 0 && handover >= 0 && guard < handover).toBe(true);
+  });
+
+  it('shouts when a payment arrives for an order with no row', () => {
+    // This is money that exists at Razorpay and nowhere in our database. It
+    // has to leave a trace loud enough to reconcile by hand.
+    const src = flat('app/api/payments/verify/route.ts');
+    expect(src).toContain('NO PAYMENT ROW');
+    expect(src).toContain('reconcile it against the Razorpay dashboard');
+  });
+
+  it('records the payment status only through the service role', () => {
+    // The family has no write privilege on payments (0001 leaves it read-only
+    // to the owner, 0003 hardens the rest). A status write through the user's
+    // own client would fail silently under RLS rather than loudly.
+    for (const rel of ['app/api/payments/verify/route.ts',
+                       'app/api/payments/webhook/route.ts']) {
+      const src = flat(rel);
+      expect(src).toContain('supabaseAdmin()');
+    }
+  });
+});

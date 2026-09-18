@@ -4,6 +4,7 @@ import { verifyCheckoutSignature } from '@/lib/payments';
 import { supabaseServer, supabaseAdmin, currentUser } from '@/lib/supabase/server';
 import { rateLimit, rateLimitHeaders } from '@/lib/ratelimit';
 import { audit } from '@/lib/audit';
+import { deployEnv } from '@/lib/site';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -84,8 +85,48 @@ export async function POST(request: NextRequest) {
 
   const payment = rows?.[0];
   if (!payment) {
-    // Either no such order, or it is not this user's. Same answer for both.
-    return NextResponse.json({ error: 'not found' }, { status: 404 });
+    // Reaching here means someone has probably just paid for an order we have
+    // no record of, which is the most expensive failure this codebase has. It
+    // used to return a bare 404 and log nothing, so the only trace was a
+    // confused family and a case still marked unpaid.
+    //
+    // Two different faults produce it, and telling them apart matters: either
+    // the order row was never written (a bug on our side, and the money is
+    // real), or the order belongs to a different user (someone probing). The
+    // service role can see rows RLS hides, so it can distinguish them for the
+    // log — while the ANSWER stays identical either way, because confirming
+    // that an order id exists is itself information worth withholding.
+    const { data: anyRow } = await supabaseAdmin()
+      .from('payments')
+      .select('id, case_id')
+      .eq('razorpay_order_id', orderId)
+      .limit(1);
+
+    const orphaned = !anyRow?.length;
+
+    console.error(
+      orphaned
+        ? `[pay-verify] NO PAYMENT ROW for order ${orderId} (payment ${paymentId}). `
+          + 'If this payment succeeded at Razorpay the money is real and unrecorded — '
+          + 'reconcile it against the Razorpay dashboard by hand.'
+        : `[pay-verify] order ${orderId} exists but is not visible to user ${user.id}`,
+    );
+
+    await audit('payment.verified', {
+      actorId: user.id,
+      detail: { outcome: orphaned ? 'order_row_missing' : 'order_not_owned' },
+    });
+
+    const body: Record<string, unknown> = { error: 'not found' };
+    if (deployEnv() !== 'production') {
+      body.diagnostic = orphaned
+        ? 'No payments row exists for this order id. The order was not recorded '
+          + 'at creation time — check the /api/payments/order logs.'
+        : 'A payments row exists for this order id but row-level security hides '
+          + 'it from the signed-in user, so the order belongs to another account.';
+    }
+
+    return NextResponse.json(body, { status: 404 });
   }
 
   let valid = false;
